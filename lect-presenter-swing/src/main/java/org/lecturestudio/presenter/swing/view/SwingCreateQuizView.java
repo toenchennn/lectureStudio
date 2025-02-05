@@ -235,6 +235,7 @@ public class SwingCreateQuizView extends ContentPane implements CreateQuizView {
 
 	@Override
 	public void setQuizType(QuizType type) {
+		// Lists all possible types of quizzes (MC, Numeric, single answer) on the quiz creation menu
 		SwingUtils.invoke(() -> {
 			switch (type) {
 				case MULTIPLE -> multipleTypeRadioButton.setSelected(true);
