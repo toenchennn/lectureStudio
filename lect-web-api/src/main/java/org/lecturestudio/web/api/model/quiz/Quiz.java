@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.jetbrains.annotations.NotNull;
 import org.lecturestudio.web.api.filter.FilterRule;
 import org.lecturestudio.web.api.filter.InputFieldFilter;
 import org.lecturestudio.web.api.filter.InputFieldRule;
@@ -82,7 +83,7 @@ public class Quiz implements Cloneable, Serializable {
 	private List<HttpResourceFile> questionResources = new ArrayList<>();
 
 	/** The possible answer options for multiple choice and single choice questions. */
-	private List<String> options = new ArrayList<>();
+	private @NotNull List<String> options = new ArrayList<>();
 
 	/**
 	 * This {@link List} stores the correct answer options by storing a {@link Boolean} value at its index
@@ -128,6 +129,12 @@ public class Quiz implements Cloneable, Serializable {
 	 */
 	public void addOption(String option) {
 		options.add(option);
+
+		/* -- logic for storing the correct quiz answer -- */
+
+		// Core idea: Upon adding the option, the option is not marked as the correct one yet. Therefore, the boolean
+		// value corresponding to the options list is initially false.
+		correctOptions.add(false);
 	}
 
 	/**
@@ -207,6 +214,9 @@ public class Quiz implements Cloneable, Serializable {
 	 */
 	public void clearOptions() {
 		options.clear();
+
+		/* -- logic for storing the correct quiz answer -- */
+		correctOptions.clear();
 	}
 
 	/**
@@ -225,6 +235,12 @@ public class Quiz implements Cloneable, Serializable {
 	 */
 	public void setOptions(List<String> options) {
 		this.options = options;
+
+		/* -- logic for storing the correct quiz answer -- */
+
+		// Replaces the list of correct options to a new one with a same length as the length of the options list.
+		correctOptions.clear(); // emptying the correct options list
+		options.forEach(x -> correctOptions.add(false)); // Resizes and fills with 'false' values.
 	}
 
 	/**
