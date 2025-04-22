@@ -20,11 +20,12 @@ package org.lecturestudio.web.api.model.quiz;
 
 import static java.util.Objects.nonNull;
 
+import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Stream;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.lecturestudio.web.api.filter.FilterRule;
 import org.lecturestudio.web.api.filter.InputFieldFilter;
@@ -42,8 +43,10 @@ import org.lecturestudio.web.api.model.HttpResourceFile;
  *
  * @author Alex Andres
  */
+@Getter
 public class Quiz implements Cloneable, Serializable {
 
+	@Serial
 	private static final long serialVersionUID = -2922040254601147407L;
 
 
@@ -83,7 +86,7 @@ public class Quiz implements Cloneable, Serializable {
 	private List<HttpResourceFile> questionResources = new ArrayList<>();
 
 	/** The possible answer options for multiple choice and single choice questions. */
-	private @NotNull List<String> options = new ArrayList<>();
+	private List<String> options = new ArrayList<>();
 
 	/**
 	 * This {@link List} stores the correct answer options by storing a {@link Boolean} value at its index
@@ -95,7 +98,7 @@ public class Quiz implements Cloneable, Serializable {
 	 *	It is {@code correctOptions.get(i) == true} if and only if {@code options.get(i)} is the correct answer.
 	 * </p>
 	 */
-	private final List<Boolean> correctOptions = new ArrayList<>();
+	private final @NotNull Map<String, Boolean> correctOptions = new HashMap<>();
 
 	/** Regular expression rules used to validate text input for numeric questions. */
 	private List<RegexRule> regexRules = new ArrayList<>();
@@ -134,7 +137,7 @@ public class Quiz implements Cloneable, Serializable {
 
 		// Core idea: Upon adding the option, the option is not marked as the correct one yet. Therefore, the boolean
 		// value corresponding to the options list is initially false.
-		correctOptions.add(false);
+		correctOptions.put(option, false);
 	}
 
 	/**
@@ -240,7 +243,7 @@ public class Quiz implements Cloneable, Serializable {
 
 		// Replaces the list of correct options to a new one with a same length as the length of the options list.
 		correctOptions.clear(); // emptying the correct options list
-		options.forEach(x -> correctOptions.add(false)); // Resizes and fills with 'false' values.
+		options.forEach(opt -> correctOptions.put(opt, false)); // Resizes and fills with 'false' values.
 	}
 
 	/**
@@ -323,6 +326,18 @@ public class Quiz implements Cloneable, Serializable {
 		if (nonNull(filter)) {
 			filter.clear();
 		}
+	}
+
+	/**
+	 * Returns a list of options that are the correct ones.
+	 *
+	 * @return list of correct options
+	 */
+	public List<String> getCorrectOptions() {
+		return options
+				.stream()
+				.filter(s -> correctOptions.get(s) == true)
+				.toList();
 	}
 
 	@Override
