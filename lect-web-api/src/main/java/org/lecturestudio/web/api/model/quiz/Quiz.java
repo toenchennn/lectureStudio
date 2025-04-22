@@ -84,6 +84,18 @@ public class Quiz implements Cloneable, Serializable {
 	/** The possible answer options for multiple choice and single choice questions. */
 	private List<String> options = new ArrayList<>();
 
+	/**
+	 * This {@link List} stores the correct answer options by storing a {@link Boolean} value at its index
+	 * corresponding to the index of the {@link List} attribute {@link #options}.
+	 *
+	 * <p>
+	 *  <b>Formally</b>:
+	 *  Let i be an integer and an index.
+	 *	It is {@code correctOptions.get(i) == true} if and only if {@code options.get(i)} is the correct answer.
+	 * </p>
+	 */
+	private final List<Boolean> correctOptions = new ArrayList<>();
+
 	/** Regular expression rules used to validate text input for numeric questions. */
 	private List<RegexRule> regexRules = new ArrayList<>();
 
