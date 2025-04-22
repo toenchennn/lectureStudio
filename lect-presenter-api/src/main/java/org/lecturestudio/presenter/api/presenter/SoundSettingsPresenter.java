@@ -47,6 +47,7 @@ import org.lecturestudio.core.io.RandomAccessAudioStream;
 import org.lecturestudio.core.presenter.Presenter;
 import org.lecturestudio.core.util.MapChangeListener;
 import org.lecturestudio.core.util.ObservableMap;
+import org.lecturestudio.media.audio.DefaultAudioSink;
 import org.lecturestudio.presenter.api.config.DefaultConfiguration;
 import org.lecturestudio.presenter.api.presenter.command.AdjustAudioCaptureLevelCommand;
 import org.lecturestudio.presenter.api.view.SoundSettingsView;
@@ -240,17 +241,18 @@ public class SoundSettingsPresenter extends Presenter<SoundSettingsView> {
 
 	@Override
 	public void close() {
-		//audioSystemProvider.removeDeviceChangeListener(deviceChangeListener);
-
 		super.close();
 	}
 
 	private void loadDevices() {
 		CompletableFuture.runAsync(() -> {
-			view.setAudioCaptureDevices(audioSystemProvider.getRecordingDevices());
+			AudioDevice[] recordingDevices = audioSystemProvider.getRecordingDevices();
+
+			view.setAudioCaptureDevices(recordingDevices);
 			view.setAudioPlaybackDevices(audioSystemProvider.getPlaybackDevices());
 			view.setAudioCaptureDevice(audioConfig.captureDeviceNameProperty());
 			view.setAudioPlaybackDevice(audioConfig.playbackDeviceNameProperty());
+			view.setViewEnabled(nonNull(recordingDevices) && recordingDevices.length > 0);
 		});
 	}
 
@@ -379,7 +381,7 @@ public class SoundSettingsPresenter extends Presenter<SoundSettingsView> {
 			captureDevice = audioSystemProvider.getDefaultRecordingDevice();
 		}
 		catch (Throwable e) {
-			// Audio device error, e.g. no device connected, will be visible in the view.
+			// Audio device error, e.g., no device connected, will be visible in the view.
 		}
 
 		// Select first available capture device.
@@ -441,22 +443,11 @@ public class SoundSettingsPresenter extends Presenter<SoundSettingsView> {
 		settings.setHighpassFilterEnabled(true);
 		settings.setNoiseSuppressionEnabled(true);
 		settings.setNoiseSuppressionLevel(NoiseSuppressionLevel.LOW);
-		settings.setLevelEstimationEnabled(true);
-		settings.setVoiceDetectionEnabled(true);
 		settings.setEchoCancellerEnabled(true);
 
 		levelRecorder = createAudioRecorder();
 		levelRecorder.setAudioProcessingSettings(settings);
-		levelRecorder.setAudioSink(new AudioSink() {
-
-			@Override
-			public void open() {}
-
-			@Override
-			public void reset() {}
-
-			@Override
-			public void close() {}
+		levelRecorder.setAudioSink(new DefaultAudioSink() {
 
 			@Override
 			public int write(byte[] data, int offset, int length) {
@@ -473,9 +464,6 @@ public class SoundSettingsPresenter extends Presenter<SoundSettingsView> {
 			public AudioFormat getAudioFormat() {
 				return audioConfig.getRecordingFormat();
 			}
-
-			@Override
-			public void setAudioFormat(AudioFormat format) {}
 
 			private double getSignalPowerLevel(byte[] buffer) {
 				int max = 0;

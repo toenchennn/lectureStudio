@@ -41,6 +41,7 @@ import javax.swing.*;
 import org.lecturestudio.core.beans.ObjectProperty;
 import org.lecturestudio.core.view.ConsumerAction;
 import org.lecturestudio.swing.list.ParticipantCellRenderer;
+import org.lecturestudio.web.api.janus.JanusParticipantContext;
 import org.lecturestudio.web.api.message.SpeechBaseMessage;
 import org.lecturestudio.web.api.stream.model.CourseParticipant;
 import org.lecturestudio.web.api.stream.model.CourseParticipantType;
@@ -135,6 +136,27 @@ public class ParticipantList extends JPanel {
 
 		if (nonNull(found)) {
 			found.speechRequest.set(request);
+
+			listModel.fireParticipantChanged(found);
+		}
+	}
+
+	public void setSpeechRequestContext(JanusParticipantContext context) {
+		CourseParticipantItem found = listModel.getParticipantById(context.getUserId());
+
+		if (nonNull(found)) {
+			found.participantContext.set(context);
+			found.speechRequest.set(null);
+
+			listModel.fireParticipantChanged(found);
+		}
+	}
+
+	public void removeSpeechRequestContext(JanusParticipantContext context) {
+		CourseParticipantItem found = listModel.getParticipantById(context.getUserId());
+
+		if (nonNull(found)) {
+			found.participantContext.set(null);
 
 			listModel.fireParticipantChanged(found);
 		}
@@ -248,6 +270,8 @@ public class ParticipantList extends JPanel {
 
 
 	public static class CourseParticipantItem extends CourseParticipant {
+
+		public ObjectProperty<JanusParticipantContext> participantContext = new ObjectProperty<>();
 
 		public ObjectProperty<SpeechBaseMessage> speechRequest = new ObjectProperty<>();
 

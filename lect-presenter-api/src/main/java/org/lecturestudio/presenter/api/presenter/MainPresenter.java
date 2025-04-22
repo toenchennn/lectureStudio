@@ -59,7 +59,6 @@ import org.lecturestudio.core.presenter.command.ShowPresenterCommand;
 import org.lecturestudio.core.service.DocumentService;
 import org.lecturestudio.core.util.ObservableHashMap;
 import org.lecturestudio.core.util.ObservableMap;
-import org.lecturestudio.core.util.OsInfo;
 import org.lecturestudio.core.util.ShutdownHandler;
 import org.lecturestudio.core.view.Action;
 import org.lecturestudio.core.view.NotificationPopupManager;
@@ -262,14 +261,14 @@ public class MainPresenter extends org.lecturestudio.core.presenter.MainPresente
 
 		config.setAdvancedUIMode(true);
 
-		if (!OsInfo.isMacOs()) {
-			addHandler(new PowerManagementHandler(presenterContext));
-		}
-
 		addHandler(new AudioDeviceChangeHandler(presenterContext, audioSystemProvider, recordingService));
+		addHandler(new AutostartRecordingHandler(presenterContext, documentService, recordingService));
+		addHandler(new DisplayNotificationHandler(presenterContext, presentationController));
 		addHandler(new MicrophoneMuteHandler(presenterContext, recordingService));
+		addHandler(new VoiceActivityHandler(presenterContext, audioSystemProvider, documentService));
 		addHandler(new ViewStreamHandler(presenterContext));
 		addHandler(new HeartbeatErrorHandler(presenterContext));
+		addHandler(new PowerManagementHandler(presenterContext));
 		addHandler(new StreamHandler(presenterContext, streamService, screenShareService));
 		addHandler(new ScreenShareHandler(presenterContext, streamService, screenShareService, screenSourceService,
 				documentService, recordingService));
@@ -382,21 +381,10 @@ public class MainPresenter extends org.lecturestudio.core.presenter.MainPresente
 	public void onEvent(final MessengerStateEvent event) {
 		ExecutableState state = event.getState();
 
-//		if (state == ExecutableState.Starting) {
-//			showWaitingNotification("messenger.starting");
-//		}
-//		else if (state == ExecutableState.Started) {
-//			hideWaitingNotification();
-//
-////			display(createPresenter(MessengerWindowPresenter.class));
-//		}
-//		else
 		if (state == ExecutableState.Stopped) {
 			PresenterContext presenterContext = (PresenterContext) context;
 			presenterContext.getMessengerMessages().clear();
 			presenterContext.getAllReceivedMessengerMessages().clear();
-
-//			destroyHandler(MessengerWindowPresenter.class);
 		}
 	}
 
@@ -472,7 +460,7 @@ public class MainPresenter extends org.lecturestudio.core.presenter.MainPresente
 
 						ScreenDocumentCreator.create(documentService, context.getSource());
 
-						// Register created screen document with the screen source.
+						// Register created a screen document with the screen source.
 						screenSourceService.addScreenShareContext(
 								documentService.getDocuments().getSelectedDocument(),
 								context);
@@ -683,7 +671,12 @@ public class MainPresenter extends org.lecturestudio.core.presenter.MainPresente
 	private void addHandler(PresenterHandler handler) {
 		handlers.add(handler);
 
-		handler.initialize();
+		try {
+			handler.initialize();
+		}
+		catch (Exception e) {
+			handleException(e, "Initialize handler failed", "generic.error");
+		}
 	}
 
 	private void addContext(Presenter<?> presenter) {
@@ -825,11 +818,33 @@ public class MainPresenter extends org.lecturestudio.core.presenter.MainPresente
 	private void setViewHidden(Class<? extends View> viewClass) {
 		BooleanProperty property = getViewVisibleProperty(viewClass);
 		property.set(false);
+
+		// After setting the current view as hidden, this loop iterates through all registered views
+		// to find any that are still visible. If a visible view is found, it updates the
+		// application context to track that view as the currently visible one.
+		// This ensures that after hiding a view, the application maintains awareness
+		// of whichever view (if any) is now in focus.
+		PresenterContext pContext = (PresenterContext) context;
+
+		for (var entry : viewMap.entrySet()) {
+			BooleanProperty p = entry.getValue();
+
+			if (nonNull(p) && p.get()) {
+				pContext.setCurrentlyVisibleView(entry.getKey());
+				return;
+			}
+		}
+
+		// Reset the currently visible view to null since all views are now hidden.
+		pContext.setCurrentlyVisibleView(null);
 	}
 
 	private void setViewShown(Class<? extends View> viewClass) {
 		BooleanProperty property = getViewVisibleProperty(viewClass);
 		property.set(true);
+
+		PresenterContext pContext = (PresenterContext) context;
+		pContext.setCurrentlyVisibleView(viewClass);
 	}
 
 	private void createSettingsPresentation() {

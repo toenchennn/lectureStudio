@@ -4,6 +4,7 @@ import static java.util.Objects.nonNull;
 
 import java.awt.Component;
 import java.util.ResourceBundle;
+import java.util.UUID;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -17,10 +18,20 @@ import javax.swing.border.EmptyBorder;
 
 import org.lecturestudio.swing.AwtResourceLoader;
 import org.lecturestudio.swing.components.ParticipantList.CourseParticipantItem;
+import org.lecturestudio.web.api.janus.JanusParticipantContext;
 import org.lecturestudio.web.api.message.SpeechBaseMessage;
 import org.lecturestudio.web.api.stream.model.CourseParticipantType;
 import org.lecturestudio.web.api.stream.model.CoursePresenceType;
 
+/**
+ * A custom list cell renderer for displaying course participants in a JList component.
+ * This renderer displays a participant's name, role type (organizer, co-organizer, participant, etc.),
+ * presence type (stream, classroom), and speech request controls.
+ *
+ * @see org.lecturestudio.swing.components.ParticipantList.CourseParticipantItem
+ *
+ * @author Alex Andres
+ */
 public class ParticipantCellRenderer extends Box implements ListCellRenderer<CourseParticipantItem> {
 
 	private static final Border BORDER = new EmptyBorder(5, 5, 5, 5);
@@ -59,12 +70,13 @@ public class ParticipantCellRenderer extends Box implements ListCellRenderer<Cou
 
 		add(nameLabel);
 		add(Box.createHorizontalGlue());
-		add(typeLabel);
-		add(presenceTypeLabel);
 		add(Box.createHorizontalStrut(3));
 		add(acceptButton);
 		add(Box.createHorizontalStrut(3));
 		add(rejectButton);
+		add(Box.createHorizontalStrut(3));
+		add(typeLabel);
+		add(presenceTypeLabel);
 	}
 
 	@Override
@@ -88,6 +100,8 @@ public class ParticipantCellRenderer extends Box implements ListCellRenderer<Cou
 			final CourseParticipantType partType = participant.getParticipantType();
 			final CoursePresenceType presenceType = participant.getPresenceType();
 			final SpeechBaseMessage speechRequest = participant.speechRequest.get();
+			final JanusParticipantContext participantContext = participant.participantContext.get();
+			final UUID requestUuid = nonNull(participantContext) ? participantContext.getRequestId() : null;
 
 			String partTypeStr = "";
 			String presenceTypeStr = "";

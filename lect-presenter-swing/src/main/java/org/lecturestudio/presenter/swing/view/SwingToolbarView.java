@@ -59,6 +59,7 @@ import org.lecturestudio.core.tool.ToolType;
 import org.lecturestudio.core.view.Action;
 import org.lecturestudio.core.view.ConsumerAction;
 import org.lecturestudio.core.view.PresentationParameter;
+import org.lecturestudio.presenter.api.model.ManualStateObserver;
 import org.lecturestudio.presenter.api.view.ToolbarView;
 import org.lecturestudio.swing.AwtResourceLoader;
 import org.lecturestudio.swing.components.FontPickerButton;
@@ -183,7 +184,6 @@ public class SwingToolbarView extends JPanel implements ToolbarView {
 	private static final String ADD_BOOKMARK_KEY = "menu.bookmarks.add";
 
 
-
 	@Inject
 	SwingToolbarView(Dictionary dict, ResourceBundle resourceBundle, ToolController toolController) {
 		super();
@@ -257,7 +257,6 @@ public class SwingToolbarView extends JPanel implements ToolbarView {
 			boolean started = state == ExecutableState.Started ||
 					state == ExecutableState.Suspended;
 
-			streamMicButton.setEnabled(started);
 			streamCamButton.setEnabled(started);
 		});
 	}
@@ -597,8 +596,7 @@ public class SwingToolbarView extends JPanel implements ToolbarView {
 						if (toolType == buttonType) {
 							toolGroup.setSelected(button.getModel(), true);
 
-							if (button instanceof ToolGroupButton) {
-								ToolGroupButton groupButton = (ToolGroupButton) button;
+							if (button instanceof ToolGroupButton groupButton) {
 								groupButton.selectToolType(toolType);
 							}
 							break;
@@ -642,6 +640,11 @@ public class SwingToolbarView extends JPanel implements ToolbarView {
 	@Override
 	public void bindEnableScreenSharing(Action action) {
 		SwingUtils.bindAction(screenShareEnableButton, action);
+	}
+
+	@Override
+	public void setManualStateObserver(ManualStateObserver observer) {
+		SwingUtils.bindBidirectional(streamMicButton, observer.microphoneActiveProperty());
 	}
 
 	@Override

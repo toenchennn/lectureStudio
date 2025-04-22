@@ -200,6 +200,14 @@ public class JanusPeerConnection implements PeerConnectionObserver {
 		dataChannel.send(new RTCDataChannelBuffer(dataBuffer, true));
 	}
 
+	public RTCPeerConnectionState getPeerConnectionState() {
+		if (isNull(peerConnection)) {
+			return RTCPeerConnectionState.CLOSED;
+		}
+
+		return peerConnection.getConnectionState();
+	}
+
 	@Override
 	public void onRenegotiationNeeded() {
 		if (nonNull(peerConnection.getRemoteDescription())) {
@@ -309,6 +317,20 @@ public class JanusPeerConnection implements PeerConnectionObserver {
 
 			createOffer();
 		});
+	}
+
+	public boolean isReceivingAudio() {
+		for (RTCRtpReceiver receiver : peerConnection.getReceivers()) {
+			MediaStreamTrack track = receiver.getTrack();
+
+			if (nonNull(track) && track.getKind().equals(MediaStreamTrack.AUDIO_TRACK_KIND)) {
+				if (track.isEnabled()) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	public boolean isReceivingVideo() {

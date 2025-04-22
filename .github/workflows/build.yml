@@ -9,12 +9,14 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-13, macos-14, ubuntu-20.04, windows-2019]
+        os: [macos-13, macos-14, ubuntu-22.04, windows-2019]
         java: [21]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Maven cache
         uses: actions/cache@v4
@@ -24,10 +26,20 @@ jobs:
           restore-keys: maven-${{ runner.os }}-
 
       - name: Set up JDK ${{ matrix.java }}
+        if: runner.os != 'linux'
         uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
+
+      - name: Set up JDK
+        shell: bash
+        if: runner.os == 'linux'
+        run: |
+          sudo apt update
+          sudo apt install -y openjdk-21-jdk
+          echo "JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64" >> $GITHUB_ENV
+          echo "PATH=/usr/lib/jvm/java-21-openjdk-amd64/bin:$PATH" >> $GITHUB_ENV
 
       - name: Install the Apple certificate
         if: runner.os == 'macOS'
@@ -39,6 +51,20 @@ jobs:
 
           # Import certificate from secrets
           echo -n "$CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+      - name: Get version for the current build
+        uses: orhun/git-cliff-action@v4
+        id: git-cliff
+        with:
+          config: .github/cliff.toml
+          args: -v -u --strip footer --bump --use-branch-tags
+
+      - name: Update version in pom.xml
+        run: |
+          tag=${{ steps.git-cliff.outputs.version }}
+          version=${tag#v}
+          mvn versions:set-property -D"property=package.version" -D"newVersion=$version" -D"generateBackupPoms=false"
+        shell: bash
 
       - name: Build
         env:

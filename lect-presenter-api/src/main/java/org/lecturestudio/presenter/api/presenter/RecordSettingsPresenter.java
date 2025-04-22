@@ -21,6 +21,7 @@ package org.lecturestudio.presenter.api.presenter;
 import static java.util.Objects.nonNull;
 
 import java.io.File;
+import java.util.concurrent.CompletableFuture;
 
 import javax.inject.Inject;
 
@@ -53,6 +54,7 @@ public class RecordSettingsPresenter extends Presenter<RecordSettingsView> {
 	public void initialize() {
 		PresenterConfiguration config = (PresenterConfiguration) context.getConfiguration();
 
+		view.setAutostartRecording(config.autostartRecordingProperty());
 		view.setNotifyToRecord(config.notifyToRecordProperty());
 		view.setConfirmStopRecording(config.confirmStopRecordingProperty());
 		view.setMixAudioStreams(audioConfig.mixAudioStreamsProperty());
@@ -60,9 +62,8 @@ public class RecordSettingsPresenter extends Presenter<RecordSettingsView> {
 		view.setRecordingAudioFormats(AudioUtils.getAudioFormats());
 		view.setRecordingAudioFormat(audioConfig.recordingFormatProperty());
 		view.setRecordingPath(audioConfig.recordingPathProperty());
-		view.setOnSelectRecordingPath(this::selectRecordingPath);
+		view.setOnSelectRecordingPath(() -> CompletableFuture.runAsync(this::selectRecordingPath));
 		view.setOnReset(this::reset);
-
 	}
 
 	private void selectRecordingPath() {
@@ -82,6 +83,7 @@ public class RecordSettingsPresenter extends Presenter<RecordSettingsView> {
 		PresenterConfiguration config = (PresenterConfiguration) context.getConfiguration();
 		DefaultConfiguration defaultConfig = new DefaultConfiguration();
 
+		config.setAutostartRecording(defaultConfig.getAutostartRecording());
 		config.setNotifyToRecord(defaultConfig.getNotifyToRecord());
 		config.setConfirmStopRecording(defaultConfig.getConfirmStopRecording());
 		config.setPageRecordingTimeout(defaultConfig.getPageRecordingTimeout());

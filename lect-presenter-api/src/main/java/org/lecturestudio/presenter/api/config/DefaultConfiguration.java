@@ -18,6 +18,7 @@
 
 package org.lecturestudio.presenter.api.config;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Locale;
@@ -35,10 +36,7 @@ import org.lecturestudio.core.text.Font;
 import org.lecturestudio.core.text.TeXFont;
 import org.lecturestudio.core.text.TextAttributes;
 import org.lecturestudio.core.tool.PresetColor;
-import org.lecturestudio.presenter.api.model.MessageBarPosition;
-import org.lecturestudio.presenter.api.model.NoteSlidePosition;
-import org.lecturestudio.presenter.api.model.ParticipantsPosition;
-import org.lecturestudio.presenter.api.model.SlideNotesPosition;
+import org.lecturestudio.presenter.api.model.*;
 import org.lecturestudio.presenter.api.net.ScreenShareProfiles;
 
 public class DefaultConfiguration extends PresenterConfiguration {
@@ -56,7 +54,8 @@ public class DefaultConfiguration extends PresenterConfiguration {
 		setSaveDocumentOnClose(true);
 		setAdvancedUIMode(true);
 		setExtendedFullscreen(true);
-		setNotifyToRecord(false);
+		setNotifyToRecord(true);
+		setAutostartRecording(true);
 		setConfirmStopRecording(true);
 		setPageRecordingTimeout(2000);
 
@@ -103,15 +102,22 @@ public class DefaultConfiguration extends PresenterConfiguration {
 
 		Collections.fill(getToolConfig().getPresetColors(), Color.WHITE);
 
-		getExternalMessagesConfig().setEnabled(false);
 		getExternalSlidePreviewConfig().setEnabled(false);
-		getExternalSpeechConfig().setEnabled(false);
+		getExternalParticipantVideoConfig().setEnabled(false);
+		getExternalMessagesConfig().setEnabled(false);
+		getExternalMessagesConfig().setSize(new Dimension(500, 400));
+		getExternalParticipantsConfig().setSize(new Dimension(280, 600));
+		getExternalParticipantVideoConfig().setSize(new Dimension(280, 600));
+		getExternalSlidePreviewConfig().setSize(new Dimension(300, 700));
+		getExternalNotesConfig().setSize(new Dimension(500, 400));
+		getExternalSlideNotesConfig().setSize(new Dimension(500, 400));
 
 		getSlideViewConfiguration().setBottomSliderPosition(0.7);
 		getSlideViewConfiguration().setLeftSliderPosition(0.375);
 		getSlideViewConfiguration().setRightSliderPosition(0.8);
 		getSlideViewConfiguration().setMessageBarPosition(MessageBarPosition.BOTTOM);
 		getSlideViewConfiguration().setParticipantsPosition(ParticipantsPosition.LEFT);
+		getSlideViewConfiguration().setParticipantVideoPosition(ParticipantVideoPosition.LEFT);
 		getSlideViewConfiguration().setNoteSlidePosition(NoteSlidePosition.NONE);
 		getSlideViewConfiguration().setSlideNotesPosition(SlideNotesPosition.BOTTOM);
 		getSlideViewConfiguration().setNotesPosition(NotesPosition.RIGHT);
@@ -136,6 +142,7 @@ public class DefaultConfiguration extends PresenterConfiguration {
 		getStreamConfig().getCameraCodecConfig().setBitRate(200);
 		getStreamConfig().getCameraCodecConfig().setFrameRate(30);
 		getStreamConfig().setScreenShareProfile(ScreenShareProfiles.MOTION);
+		getStreamConfig().setParticipantVideoLayout(ParticipantVideoLayout.GALLERY);
 
 		getTemplateConfig().getQuizTemplateConfig().setBounds(new Rectangle2D(0.05, 0.05, 0.9, 0.9));
 		getTemplateConfig().getChatMessageTemplateConfig().setBounds(new Rectangle2D(0.05, 0.05, 0.9, 0.9));

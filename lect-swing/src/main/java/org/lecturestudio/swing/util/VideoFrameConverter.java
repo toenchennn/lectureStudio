@@ -26,6 +26,7 @@ import dev.onvoid.webrtc.media.video.VideoBufferConverter;
 import dev.onvoid.webrtc.media.video.VideoFrame;
 import dev.onvoid.webrtc.media.video.VideoFrameBuffer;
 
+import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 
@@ -38,11 +39,14 @@ public class VideoFrameConverter {
 	public static BufferedImage convertVideoFrameToComponentSize(
 			VideoFrame videoFrame, BufferedImage image, JComponent component)
 			throws Exception {
+		Insets insets = component.getInsets();
 		// Scale video frame to the component size.
 		double uiScale = component.getGraphicsConfiguration()
 				.getDefaultTransform().getScaleX();
-		int viewWidth = (int) (component.getWidth() * uiScale);
-		int viewHeight = (int) (component.getHeight() * uiScale);
+		int padW = insets.left + insets.right;
+		int padH = insets.top + insets.bottom;
+		int viewWidth = (int) ((component.getWidth() - padW) * uiScale);
+		int viewHeight = (int) ((component.getHeight() - padH) * uiScale);
 
 		return convertVideoFrame(videoFrame, image, viewWidth, viewHeight);
 	}
@@ -50,31 +54,32 @@ public class VideoFrameConverter {
 	public static BufferedImage convertVideoFrame(VideoFrame videoFrame,
 			BufferedImage image, int imageWidth, int imageHeight)
 			throws Exception {
-		VideoFrameBuffer buffer = videoFrame.buffer;
+		final VideoFrameBuffer buffer = videoFrame.buffer;
 
-		int width = buffer.getWidth();
-		int height = buffer.getHeight();
+		final int width = buffer.getWidth();
+		final int height = buffer.getHeight();
 
-		PageMetrics metrics = new PageMetrics(width, height);
+		final PageMetrics metrics = new PageMetrics(width, height);
 
-		var size = metrics.convert(imageWidth, imageHeight);
+		final var size = metrics.convert(imageWidth, imageHeight);
 
-		buffer = buffer.cropAndScale(0, 0, width, height, (int) size.getWidth(), (int) size.getHeight());
-		width = buffer.getWidth();
-		height = buffer.getHeight();
+		final VideoFrameBuffer croppedBuffer = buffer.cropAndScale(0, 0, width, height, (int) size.getWidth(), (int) size.getHeight());
+		final int cWidth = croppedBuffer.getWidth();
+		final int cHeight = croppedBuffer.getHeight();
 
-		if (isNull(image) || image.getWidth() != width || image.getHeight() != height) {
+		if (isNull(image) || image.getWidth() != cWidth || image.getHeight() != cHeight) {
 			if (nonNull(image)) {
 				image.flush();
 			}
-			image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
+			image = new BufferedImage(cWidth, cHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		}
 
 		byte[] imageBuffer = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 
-		VideoBufferConverter.convertFromI420(buffer, imageBuffer, FourCC.RGBA);
+		VideoBufferConverter.convertFromI420(croppedBuffer, imageBuffer, FourCC.RGBA);
 
 		// Release resources.
+		croppedBuffer.release();
 		buffer.release();
 
 		return image;

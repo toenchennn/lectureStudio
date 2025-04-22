@@ -51,7 +51,7 @@ public class NoiseSuppressionLevelRenderer extends DefaultListCellRenderer {
 			setText(resources.getString(prefix + level.name().toLowerCase()));
 		}
 		else {
-			setText("");
+			setText("< layout translation not found >");
 		}
 
 		return this;

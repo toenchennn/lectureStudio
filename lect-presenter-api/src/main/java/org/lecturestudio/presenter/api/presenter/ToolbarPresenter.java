@@ -33,7 +33,6 @@ import javax.inject.Inject;
 
 import org.lecturestudio.core.ExecutableException;
 import org.lecturestudio.core.ExecutableState;
-import org.lecturestudio.core.app.ApplicationContext;
 import org.lecturestudio.core.app.dictionary.Dictionary;
 import org.lecturestudio.core.audio.AudioDeviceNotConnectedException;
 import org.lecturestudio.core.audio.bus.event.TextFontEvent;
@@ -64,13 +63,13 @@ import org.lecturestudio.core.view.PresentationParameterProvider;
 import org.lecturestudio.core.view.ViewType;
 import org.lecturestudio.presenter.api.config.PresenterConfiguration;
 import org.lecturestudio.presenter.api.context.PresenterContext;
+import org.lecturestudio.presenter.api.event.DisplayNotificationEvent;
 import org.lecturestudio.presenter.api.event.RecordingStateEvent;
 import org.lecturestudio.presenter.api.event.ScreenShareSelectEvent;
 import org.lecturestudio.presenter.api.event.StreamingStateEvent;
 import org.lecturestudio.presenter.api.model.*;
+import org.lecturestudio.presenter.api.presenter.command.CloseablePresenterCommand;
 import org.lecturestudio.presenter.api.presenter.command.StartRecordingCommand;
-import org.lecturestudio.presenter.api.presenter.state.ActivateDisplaysNotifyState;
-import org.lecturestudio.presenter.api.presenter.state.RecordNotifyState;
 import org.lecturestudio.presenter.api.service.BookmarkService;
 import org.lecturestudio.presenter.api.service.RecordingService;
 import org.lecturestudio.presenter.api.view.ToolbarView;
@@ -80,10 +79,6 @@ public class ToolbarPresenter extends Presenter<ToolbarView> {
 	private final PageEditedListener pageEditedListener = this::pageEdited;
 
 	private final EventBus eventBus;
-
-	private final RecordNotifyState recordNotifyState;
-
-	private final ActivateDisplaysNotifyState activateDisplaysNotifyState;
 
 	private ToolType toolType;
 
@@ -104,12 +99,10 @@ public class ToolbarPresenter extends Presenter<ToolbarView> {
 
 
 	@Inject
-	public ToolbarPresenter(ApplicationContext context, ToolbarView view) {
+	public ToolbarPresenter(PresenterContext context, ToolbarView view) {
 		super(context, view);
 
 		eventBus = context.getEventBus();
-		recordNotifyState = new RecordNotifyState(context, view);
-		activateDisplaysNotifyState = new ActivateDisplaysNotifyState(context, view);
 	}
 
 	@Subscribe
@@ -155,10 +148,8 @@ public class ToolbarPresenter extends Presenter<ToolbarView> {
 			}
 			view.selectNewBookmarkButton(hasBookmark);
 			pageChanged(page);
-
 		}
 	}
-
 
 	@Subscribe
 	public void onEvent(final BookmarkEvent event) {
@@ -174,8 +165,6 @@ public class ToolbarPresenter extends Presenter<ToolbarView> {
 	@Subscribe
 	public void onEvent(final RecordingStateEvent event) {
 		view.setRecordingState(event.getState());
-
-		recordNotifyState.setRecordingState(event.getState());
 	}
 
 	@Subscribe
@@ -191,6 +180,11 @@ public class ToolbarPresenter extends Presenter<ToolbarView> {
 	@Subscribe
 	public void onEvent(final CustomizeToolbarEvent event) {
 		view.openCustomizeToolbarDialog();
+	}
+
+	@Subscribe
+	public void onEvent(final DisplayNotificationEvent event) {
+		view.showRecordNotification(event.showNotification());
 	}
 
 	public void undo() {
@@ -345,26 +339,31 @@ public class ToolbarPresenter extends Presenter<ToolbarView> {
 	}
 
 	public void startRecording() {
+		PresenterContext pContext = (PresenterContext) context;
+
 		try {
 			if (recordingService.started()) {
 				recordingService.suspend();
+
+				pContext.getManualStateObserver().setRecordingStarted(false);
 			}
 			else if (recordingService.suspended()) {
-				recordingService.start();
+				if (!pContext.getConfiguration().getStreamConfig().getMicrophoneEnabled()) {
+					startRecordingMicDisabled();
+				}
+				else {
+					startRecordingMicEnabled();
+				}
 			}
 			else {
 				eventBus.post(new StartRecordingCommand(() -> {
-					PresenterContext pContext = (PresenterContext) context;
-
 					CompletableFuture.runAsync(() -> {
-						try {
-							recordingService.start();
+						if (!pContext.getConfiguration().getStreamConfig().getMicrophoneEnabled()) {
+							startRecordingMicDisabled();
 						}
-						catch (ExecutableException e) {
-							throw new CompletionException(e);
+						else {
+							startRecordingMicEnabled();
 						}
-
-						pContext.setRecordingStarted(true);
 					})
 					.exceptionally(e -> {
 						handleRecordingStateError(e);
@@ -379,8 +378,43 @@ public class ToolbarPresenter extends Presenter<ToolbarView> {
 		}
 	}
 
+	private void startRecordingMicEnabled() {
+		PresenterContext pContext = (PresenterContext) context;
+
+		try {
+			recordingService.start();
+
+			pContext.getManualStateObserver().setRecordingStarted(true);
+		}
+		catch (ExecutableException e) {
+			throw new CompletionException(e);
+		}
+
+		pContext.setRecordingStarted(true);
+	}
+
+	private void startRecordingMicDisabled() {
+		PresenterContext pContext = (PresenterContext) context;
+
+		context.getEventBus().post(new CloseablePresenterCommand<>(
+				RemindRecordingPresenter.class, () -> {
+			// User declined, start and suspend the recording.
+			try {
+				recordingService.start();
+				recordingService.suspend();
+
+				pContext.getManualStateObserver().setRecordingStarted(true);
+				pContext.setRecordingStarted(true);
+			}
+			catch (ExecutableException e) {
+				handleRecordingStateError(e);
+			}
+		}));
+	}
+
 	public void stopRecording() {
-		PresenterConfiguration config = (PresenterConfiguration) context.getConfiguration();
+		PresenterContext pContext = (PresenterContext) context;
+		PresenterConfiguration config = pContext.getConfiguration();
 
 		if (config.getConfirmStopRecording()) {
 			eventBus.post(new ShowPresenterCommand<>(ConfirmStopRecordingPresenter.class));
@@ -389,6 +423,7 @@ public class ToolbarPresenter extends Presenter<ToolbarView> {
 			try {
 				recordingService.stop();
 
+				pContext.getManualStateObserver().setRecordingStarted(false);
 				eventBus.post(new ShowPresenterCommand<>(SaveRecordingPresenter.class));
 			}
 			catch (ExecutableException e) {
@@ -465,9 +500,6 @@ public class ToolbarPresenter extends Presenter<ToolbarView> {
 		}
 
 		view.setPage(page, parameter);
-
-		recordNotifyState.setPage(page);
-		activateDisplaysNotifyState.setPage(page);
 	}
 
 	private void pageEdited(final PageEditEvent event) {
@@ -476,15 +508,12 @@ public class ToolbarPresenter extends Presenter<ToolbarView> {
 		}
 
 		pageChanged(event.getPage());
-
-		recordNotifyState.setShape();
-		activateDisplaysNotifyState.setShape();
 	}
 
 	private void toolChanged(ToolType toolType, PaintSettings settings) {
 		this.toolType = toolType;
 
-		// Update selected tool button.
+		// Update the selected tool button.
 		view.selectToolButton(toolType);
 
 		if (!ColorPalette.hasPalette(toolType)) {
@@ -632,6 +661,8 @@ public class ToolbarPresenter extends Presenter<ToolbarView> {
 		view.bindEnableStreamCamera(config.getStreamConfig().enableCameraProperty());
 		view.bindEnableScreenSharing(this::selectScreenSource);
 
+		view.setManualStateObserver(presenterContext.getManualStateObserver());
+
 		view.setOnSelectQuiz(this::selectQuiz);
 		view.setOnAudienceMessage(this::showAudienceMessageTemplate);
 
@@ -656,7 +687,6 @@ public class ToolbarPresenter extends Presenter<ToolbarView> {
 		});
 		presentationController.presentationViewsVisibleProperty().addListener((observable, oldValue, newValue) -> {
 			view.setPresentationViewsVisible(newValue);
-			activateDisplaysNotifyState.setPresentationViewsVisible(newValue);
 		});
 	}
 }

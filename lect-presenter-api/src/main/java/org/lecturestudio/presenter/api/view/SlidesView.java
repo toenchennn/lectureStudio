@@ -21,7 +21,6 @@ package org.lecturestudio.presenter.api.view;
 import java.awt.*;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 import org.lecturestudio.core.ExecutableState;
 import org.lecturestudio.core.beans.BooleanProperty;
@@ -39,8 +38,8 @@ import org.lecturestudio.presenter.api.model.*;
 import org.lecturestudio.presenter.api.config.SlideViewConfiguration;
 import org.lecturestudio.swing.model.ExternalWindowPosition;
 import org.lecturestudio.core.stylus.StylusHandler;
-import org.lecturestudio.web.api.event.PeerStateEvent;
-import org.lecturestudio.web.api.event.RemoteVideoFrameEvent;
+import org.lecturestudio.swing.view.ParticipantView;
+import org.lecturestudio.web.api.janus.JanusParticipantContext;
 import org.lecturestudio.web.api.message.MessengerMessage;
 import org.lecturestudio.web.api.message.SpeechBaseMessage;
 import org.lecturestudio.web.api.stream.model.CourseParticipant;
@@ -115,6 +114,10 @@ public interface SlidesView extends View {
 
 	void removeSpeechRequest(SpeechBaseMessage message);
 
+	void acceptSpeechRequest(JanusParticipantContext context);
+
+	void cancelSpeechRequest(JanusParticipantContext context);
+
 	void setOnDiscardMessage(ConsumerAction<MessengerMessage> action);
 
 	void setOnCreateMessageSlide(ConsumerAction<MessengerMessage> action);
@@ -125,15 +128,11 @@ public interface SlidesView extends View {
 
 	void setOnBan(ConsumerAction<CourseParticipant> action);
 
-	void setPeerStateEvent(PeerStateEvent event);
+	void addParticipantView(ParticipantView participantView);
 
-	void setOnMutePeerAudio(ConsumerAction<Boolean> action);
+	void removeParticipantView(ParticipantView participantView);
 
-	void setOnMutePeerVideo(ConsumerAction<Boolean> action);
-
-	void setOnStopPeerConnection(ConsumerAction<UUID> action);
-
-	void setVideoFrameEvent(RemoteVideoFrameEvent event);
+	void setParticipantViews(ParticipantViewCollection collection, ParticipantVideoLayout layout);
 
 	void setOnKeyEvent(ConsumerAction<KeyEvent> action);
 
@@ -169,17 +168,17 @@ public interface SlidesView extends View {
 
 	void setOnExternalParticipantsClosed(Action action);
 
+	void setOnExternalParticipantVideoPositionChanged(ConsumerAction<ExternalWindowPosition> action);
+
+	void setOnExternalParticipantVideoSizeChanged(ConsumerAction<Dimension> action);
+
+	void setOnExternalParticipantVideoClosed(Action action);
+
 	void setOnExternalSlidePreviewPositionChanged(ConsumerAction<ExternalWindowPosition> action);
 
 	void setOnExternalSlidePreviewSizeChanged(ConsumerAction<Dimension> action);
 
 	void setOnExternalSlidePreviewClosed(Action action);
-
-	void setOnExternalSpeechPositionChanged(ConsumerAction<ExternalWindowPosition> action);
-
-	void setOnExternalSpeechSizeChanged(ConsumerAction<Dimension> action);
-
-	void setOnExternalSpeechClosed(Action action);
 
 	void setOnExternalNotesPositionChanged(ConsumerAction<ExternalWindowPosition> action);
 
@@ -201,13 +200,13 @@ public interface SlidesView extends View {
 
 	void hideExternalParticipants();
 
+	void showExternalParticipantVideo(Screen screen, Point position, Dimension size);
+
+	void hideExternalParticipantVideo();
+
 	void showExternalSlidePreview(Screen screen, Point position, Dimension size);
 
 	void hideExternalSlidePreview();
-
-	void showExternalSpeech(Screen screen, Point position, Dimension size);
-
-	void hideExternalSpeech();
 
 	void showExternalNotes(Screen screen, Point position, Dimension size);
 
@@ -225,8 +224,8 @@ public interface SlidesView extends View {
 
 	void setParticipantsPosition(ParticipantsPosition position);
 
-	void setPreviewPosition(SlidePreviewPosition position);
+	void setParticipantVideoPosition(ParticipantVideoPosition position);
 
-	void setSpeechPosition(SpeechPosition position);
+	void setPreviewPosition(SlidePreviewPosition position);
 
 }
