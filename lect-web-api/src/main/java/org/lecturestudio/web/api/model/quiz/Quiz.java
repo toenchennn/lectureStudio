@@ -236,7 +236,7 @@ public class Quiz implements Cloneable, Serializable {
 	 *
 	 * @param options The list of answer option texts to set.
 	 */
-	public void setOptions(List<String> options) {
+	public void setOptions(@NotNull List<String> options) {
 		this.options = options;
 
 		/* -- logic for storing the correct quiz answer -- */
