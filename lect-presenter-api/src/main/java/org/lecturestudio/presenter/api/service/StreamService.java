@@ -152,6 +152,7 @@ public class StreamService {
 	private void startQuizInternal(Quiz quiz) {
 		CompletableFuture.runAsync(() -> {
 			try {
+
 				webService.startQuiz(quiz);
 			}
 			catch (ExecutableException e) {

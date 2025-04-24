@@ -20,14 +20,15 @@ package org.lecturestudio.presenter.api.view;
 
 import org.lecturestudio.core.view.Action;
 import org.lecturestudio.core.view.View;
+import org.lecturestudio.web.api.model.quiz.QuizOption;
 
 public interface CreateQuizOptionView extends View {
 
 	void focus();
 
-	String getOptionText();
+	QuizOption getOption();
 
-	void setOptionText(String text);
+	void setOption(QuizOption option);
 
 	void addOnChange(Action action);
 

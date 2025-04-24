@@ -23,9 +23,7 @@ import static java.util.Objects.nonNull;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Stream;
 
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.lecturestudio.web.api.filter.FilterRule;
 import org.lecturestudio.web.api.filter.InputFieldFilter;
@@ -43,7 +41,6 @@ import org.lecturestudio.web.api.model.HttpResourceFile;
  *
  * @author Alex Andres
  */
-@Getter
 public class Quiz implements Cloneable, Serializable {
 
 	@Serial
@@ -86,19 +83,7 @@ public class Quiz implements Cloneable, Serializable {
 	private List<HttpResourceFile> questionResources = new ArrayList<>();
 
 	/** The possible answer options for multiple choice and single choice questions. */
-	private List<String> options = new ArrayList<>();
-
-	/**
-	 * This {@link List} stores the correct answer options by storing a {@link Boolean} value at its index
-	 * corresponding to the index of the {@link List} attribute {@link #options}.
-	 *
-	 * <p>
-	 *  <b>Formally</b>:
-	 *  Let i be an integer and an index.
-	 *	It is {@code correctOptions.get(i) == true} if and only if {@code options.get(i)} is the correct answer.
-	 * </p>
-	 */
-	private final @NotNull Map<String, Boolean> correctOptions = new HashMap<>();
+	private List<QuizOption> options = new ArrayList<>();
 
 	/** Regular expression rules used to validate text input for numeric questions. */
 	private List<RegexRule> regexRules = new ArrayList<>();
@@ -130,14 +115,8 @@ public class Quiz implements Cloneable, Serializable {
 	 *
 	 * @param option The text of the answer option to add.
 	 */
-	public void addOption(String option) {
+	public void addOption(QuizOption option) {
 		options.add(option);
-
-		/* -- logic for storing the correct quiz answer -- */
-
-		// Core idea: Upon adding the option, the option is not marked as the correct one yet. Therefore, the boolean
-		// value corresponding to the options list is initially false.
-		correctOptions.put(option, false);
 	}
 
 	/**
@@ -217,9 +196,6 @@ public class Quiz implements Cloneable, Serializable {
 	 */
 	public void clearOptions() {
 		options.clear();
-
-		/* -- logic for storing the correct quiz answer -- */
-		correctOptions.clear();
 	}
 
 	/**
@@ -227,7 +203,7 @@ public class Quiz implements Cloneable, Serializable {
 	 *
 	 * @return The list of answer option texts.
 	 */
-	public List<String> getOptions() {
+	public List<QuizOption> getOptions() {
 		return options;
 	}
 
@@ -236,14 +212,8 @@ public class Quiz implements Cloneable, Serializable {
 	 *
 	 * @param options The list of answer option texts to set.
 	 */
-	public void setOptions(@NotNull List<String> options) {
+	public void setOptions(@NotNull List<QuizOption> options) {
 		this.options = options;
-
-		/* -- logic for storing the correct quiz answer -- */
-
-		// Replaces the list of correct options to a new one with a same length as the length of the options list.
-		correctOptions.clear(); // emptying the correct options list
-		options.forEach(opt -> correctOptions.put(opt, false)); // Resizes and fills with 'false' values.
 	}
 
 	/**
@@ -328,18 +298,6 @@ public class Quiz implements Cloneable, Serializable {
 		}
 	}
 
-	/**
-	 * Returns a list of options that are the correct ones.
-	 *
-	 * @return list of correct options
-	 */
-	public List<String> getCorrectOptions() {
-		return options
-				.stream()
-				.filter(s -> correctOptions.get(s) == true)
-				.toList();
-	}
-
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -371,7 +329,7 @@ public class Quiz implements Cloneable, Serializable {
 		buffer.append(set).append("\n");
 		buffer.append(question).append("\n");
 
-		for (String option : options) {
+		for (QuizOption option : options) {
 			buffer.append(" ").append(option).append("\n");
 		}
 
@@ -387,7 +345,7 @@ public class Quiz implements Cloneable, Serializable {
 		Quiz quiz = new Quiz(type, question);
 		quiz.setQuizSet(getQuizSet());
 
-		for (String o : getOptions()) {
+		for (QuizOption o : getOptions()) {
 			quiz.addOption(o);
 		}
 

@@ -67,6 +67,7 @@ import org.lecturestudio.presenter.api.util.NumericStringComparator;
 import org.lecturestudio.web.api.model.quiz.Quiz;
 import org.lecturestudio.web.api.model.quiz.Quiz.QuizType;
 import org.lecturestudio.web.api.model.quiz.QuizAnswer;
+import org.lecturestudio.web.api.model.quiz.QuizOption;
 import org.lecturestudio.web.api.model.quiz.QuizResult;
 
 /**
@@ -162,10 +163,10 @@ public class QuizDocument extends HtmlToPdfDocument {
 			resourceMap.put(newPath, src);
 		}
 
-		List<String> options = quiz.getOptions();
+		List<QuizOption> options = quiz.getOptions();
 
 		// Add options below question.
-		if (options.size() > 0) {
+		if (!options.isEmpty()) {
 			Element uList = jdoc.body().appendElement("ul");
 			uList.addClass("options");
 
@@ -177,7 +178,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 				}
 
 				Element item = uList.appendElement("p");
-				item.text(prefix + options.get(i));
+				item.text(prefix + options.get(i).optionText());
 			}
 		}
 
@@ -225,7 +226,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 
 	private static void renderChartQuestions(PDDocument tplDoc, PDDocument doc,
 			Rectangle2D contentBounds, Quiz quiz) throws IOException {
-		List<String> options = quiz.getOptions();
+		List<QuizOption> options = quiz.getOptions();
 
 		if (options.isEmpty()) {
 			return;
@@ -264,7 +265,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 			Element tdDiv = data.appendElement("div");
 
 			String prefix = "";
-			String text = options.get(i);
+			String text = options.get(i).optionText();
 
 			if (quiz.getType() != QuizType.NUMERIC) {
 				prefix = quiz.getOptionAlpha(i + "") + ")";

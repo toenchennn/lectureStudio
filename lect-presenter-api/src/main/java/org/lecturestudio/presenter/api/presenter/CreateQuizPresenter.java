@@ -46,6 +46,7 @@ import org.jsoup.Jsoup;
 import org.lecturestudio.web.api.filter.MinMaxRule;
 import org.lecturestudio.web.api.model.quiz.Quiz;
 import org.lecturestudio.web.api.model.quiz.Quiz.QuizSet;
+import org.lecturestudio.web.api.model.quiz.QuizOption;
 
 public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 
@@ -228,7 +229,7 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 
 		for (CreateQuizOptionView currentView : optionContextList) {
 			CreateQuizOptionView newView = createOption();
-			newView.setOptionText(currentView.getOptionText());
+			newView.setOption(currentView.getOption());
 
 			optionViews.add(newView);
 		}
@@ -347,7 +348,7 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 
 		for (int index = 0; index < optionContextList.size(); index++) {
 			CreateQuizOptionView view = optionContextList.get(index);
-			String option = view.getOptionText();
+			QuizOption option = view.getOption();
 
 			quiz.addOption(option);
 
@@ -381,16 +382,16 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 
 			view.setQuizType(quiz.getType());
 
-			List<String> options = quiz.getOptions();
+			List<QuizOption> options = quiz.getOptions();
 
 			for (int i = 0; i < options.size(); i++) {
-				String optionText = options.get(i);
+				QuizOption option = options.get(i);
 
 				switch (quiz.getType()) {
 					case MULTIPLE, SINGLE -> {
 						CreateQuizOptionView optionView = viewFactory.getInstance(
 								CreateQuizDefaultOptionView.class);
-						optionView.setOptionText(optionText);
+						optionView.setOption(option);
 
 						addOptionView(optionView, false);
 					}
@@ -400,7 +401,7 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 
 						CreateQuizNumericOptionView optionView = viewFactory.getInstance(
 								CreateQuizNumericOptionView.class);
-						optionView.setOptionText(optionText);
+						optionView.setOption(option);
 
 						if (rule.getMin() != Integer.MIN_VALUE) {
 							optionView.setMinValue(rule.getMin());

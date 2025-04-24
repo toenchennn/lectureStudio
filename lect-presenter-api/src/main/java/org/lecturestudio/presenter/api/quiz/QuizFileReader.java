@@ -117,7 +117,7 @@ public class QuizFileReader implements QuizReader {
 						throw new QuizParseFileException("Missing quiz option: " + (i + 1), question, line);
 					}
 
-					quiz.addOption(scanner.nextLine());
+//					quiz.addOption(scanner.nextLine());
 					line++;
 				}
 
