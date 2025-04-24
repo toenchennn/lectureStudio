@@ -71,6 +71,8 @@ public class SwingParticipantView extends JComponent implements ParticipantView 
 
 	private BufferedImage image;
 
+	private BufferedImage tempImage;
+
 	private ExecutableState state;
 
 
@@ -221,12 +223,17 @@ public class SwingParticipantView extends JComponent implements ParticipantView 
 	}
 
 	private void onVideoFrame(VideoFrame frame) {
+		if (!isShowing() || !isDisplayable()) {
+			frame.release();
+			return;
+		}
 		if (!muteVideoButton.isSelected()) {
 			return;
 		}
 
 		try {
-			image = VideoFrameConverter.convertVideoFrameToComponentSize(frame, image, this);
+			tempImage = VideoFrameConverter.convertVideoFrame(frame, tempImage);
+			image = VideoFrameConverter.convertVideoFrameToComponentSize(image, tempImage, this);
 		}
 		catch (Exception e) {
 			return;
