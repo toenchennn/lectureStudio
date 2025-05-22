@@ -18,6 +18,8 @@
 
 package org.lecturestudio.web.api.model.quiz;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -35,16 +37,20 @@ public class QuizResult {
 	/** Map of quiz answers to their counts, representing how many participants chose each answer. */
 	private final TreeMap<QuizAnswer, Integer> result;
 
+	// :::::::::::::::::::::: CONSTRUCTOR(S) :::::::::::::::::::::
 
 	/**
 	 * Creates a new QuizResult for the specified quiz.
 	 *
 	 * @param quiz The quiz for which results are being collected.
 	 */
-	public QuizResult(Quiz quiz) {
+	public QuizResult(final Quiz quiz) {
 		this.quiz = quiz;
 		this.result = new TreeMap<>();
 	}
+
+
+	// ::::::::::::::::::::::::: METHODS :::::::::::::::::::::::::
 
 	/**
 	 * Adds a quiz answer to the results if it's valid.
@@ -91,7 +97,7 @@ public class QuizResult {
 	 *
 	 * @return A string representation of the answer.
 	 */
-	public String getAnswerText(QuizAnswer answer) {
+	public String getAnswerText(final @NotNull QuizAnswer answer) {
 		StringBuilder str = new StringBuilder();
 		int c = 1;
 		int length = answer.getOptions().length;
@@ -101,7 +107,7 @@ public class QuizResult {
 			c++;
 		}
 
-		if (str.length() == 0) {
+		if (str.isEmpty()) {
 			str = new StringBuilder("{ }");
 		}
 
@@ -117,7 +123,7 @@ public class QuizResult {
 	 *
 	 * @return true if the answer is valid, false otherwise.
 	 */
-	protected boolean checkAnswer(QuizAnswer answer) {
+	protected boolean checkAnswer(final @NotNull QuizAnswer answer) {
 		if (answer.getOptions().length > quiz.getOptions().size()
 				&& quiz.getType() != Quiz.QuizType.NUMERIC) {
 			return false;

@@ -37,10 +37,7 @@ import org.lecturestudio.core.view.Action;
 import org.lecturestudio.core.view.ViewContextFactory;
 import org.lecturestudio.presenter.api.service.QuizService;
 import org.lecturestudio.presenter.api.service.StreamService;
-import org.lecturestudio.presenter.api.view.CreateQuizDefaultOptionView;
-import org.lecturestudio.presenter.api.view.CreateQuizNumericOptionView;
-import org.lecturestudio.presenter.api.view.CreateQuizOptionView;
-import org.lecturestudio.presenter.api.view.CreateQuizView;
+import org.lecturestudio.presenter.api.view.*;
 
 import org.jsoup.Jsoup;
 import org.lecturestudio.web.api.filter.MinMaxRule;
@@ -263,10 +260,16 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 
 	private CreateQuizOptionView createOption() {
 		return switch (quiz.getType()) {
+
 			case MULTIPLE, SINGLE ->
 					viewFactory.getInstance(CreateQuizDefaultOptionView.class);
+
 			case NUMERIC ->
 					viewFactory.getInstance(CreateQuizNumericOptionView.class);
+
+			case FREE_TEXT_ANSWER ->
+					viewFactory.getInstance(CreateQuizWordCloudOptionView.class);
+
 		};
 	}
 
@@ -388,6 +391,8 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 				QuizOption option = options.get(i);
 
 				switch (quiz.getType()) {
+
+					// handles the case where the quiz type is multiple choice
 					case MULTIPLE, SINGLE -> {
 						CreateQuizOptionView optionView = viewFactory.getInstance(
 								CreateQuizDefaultOptionView.class);
@@ -395,6 +400,8 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 
 						addOptionView(optionView, false);
 					}
+
+					// handles the case where the quiz type is numeric
 					case NUMERIC -> {
 						MinMaxRule rule = (MinMaxRule) quiz.getInputFilter()
 								.getRules().get(i);
@@ -411,6 +418,11 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 						}
 
 						addOptionView(optionView, false);
+					}
+
+					// handles the case where the quiz type is free text answer
+					case FREE_TEXT_ANSWER -> {
+
 					}
 				}
 			}

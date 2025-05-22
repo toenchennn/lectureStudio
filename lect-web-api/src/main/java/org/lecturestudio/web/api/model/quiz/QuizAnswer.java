@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
 import org.lecturestudio.web.api.model.ServiceModel;
 
 /**
@@ -32,7 +33,7 @@ import org.lecturestudio.web.api.model.ServiceModel;
 public class QuizAnswer extends ServiceModel implements Comparable<QuizAnswer>, Cloneable, Serializable {
 
 	/** Array of option strings representing the answer choices. */
-	private String[] options;
+	private @Nullable String[] options;
 
 
 	/**

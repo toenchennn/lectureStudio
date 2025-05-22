@@ -50,6 +50,7 @@ import javax.swing.text.JTextComponent;
 
 import net.atlanticbb.tantlinger.shef.HTMLEditorPane;
 
+import org.jetbrains.annotations.NotNull;
 import org.lecturestudio.core.model.Document;
 import org.lecturestudio.core.view.Action;
 import org.lecturestudio.core.view.ConsumerAction;
@@ -85,6 +86,11 @@ public class SwingCreateQuizView extends ContentPane implements CreateQuizView {
 	private JRadioButton singleTypeRadioButton;
 
 	private JRadioButton numericTypeRadioButton;
+
+	/**
+	 * This is the radio button for the free text answer quiz type.
+	 */
+	private JRadioButton freeTextAnswerRadioButton;
 
 	private String optionTooltip;
 
@@ -234,13 +240,18 @@ public class SwingCreateQuizView extends ContentPane implements CreateQuizView {
 	}
 
 	@Override
-	public void setQuizType(QuizType type) {
+	public void setQuizType(final @NotNull QuizType type) {
 		// Lists all possible types of quizzes (MC, Numeric, single answer) on the quiz creation menu
 		SwingUtils.invoke(() -> {
 			switch (type) {
 				case MULTIPLE -> multipleTypeRadioButton.setSelected(true);
+
 				case NUMERIC -> numericTypeRadioButton.setSelected(true);
+
 				case SINGLE -> singleTypeRadioButton.setSelected(true);
+
+				// handles the free text answer quiz type
+				case FREE_TEXT_ANSWER -> freeTextAnswerRadioButton.setSelected(true);
 			}
 		});
 	}

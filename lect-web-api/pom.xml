@@ -231,5 +231,13 @@
             <version>15.0</version>
             <scope>compile</scope>
         </dependency>
+
+		<!-- This dependency is used for the word cloud. -->
+		<dependency>
+			<groupId>com.kennycason</groupId>
+			<artifactId>kumo-core</artifactId>
+			<version>1.28</version>
+		</dependency>
+
     </dependencies>
 </project>

@@ -56,7 +56,25 @@ public class Quiz implements Cloneable, Serializable {
 	 * </p>
 	 */
 	public enum QuizType {
-		MULTIPLE, SINGLE, NUMERIC
+		/**
+		 * Represents a multiple choice question where users can select multiple answers.
+		 */
+		MULTIPLE,
+
+		/**
+		 * Represents a single choice question where exactly one answer is correct.
+		 */
+		SINGLE,
+
+		/**
+		 * Represents a numeric question where users must provide a numeric answer.
+		 */
+		NUMERIC,
+
+		/**
+		 * Represents a free text question where users can provide any text as an answer.
+		 */
+		FREE_TEXT_ANSWER
 	}
 
 	/**
