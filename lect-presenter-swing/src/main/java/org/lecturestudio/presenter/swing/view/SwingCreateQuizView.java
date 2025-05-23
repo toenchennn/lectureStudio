@@ -251,7 +251,7 @@ public class SwingCreateQuizView extends ContentPane implements CreateQuizView {
 				case SINGLE -> singleTypeRadioButton.setSelected(true);
 
 				// handles the free text answer quiz type
-				case FREE_TEXT_ANSWER -> freeTextAnswerRadioButton.setSelected(true);
+				case FREE_TEXT -> freeTextAnswerRadioButton.setSelected(true);
 			}
 		});
 	}

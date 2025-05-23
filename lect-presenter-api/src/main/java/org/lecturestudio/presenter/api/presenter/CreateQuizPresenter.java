@@ -233,7 +233,12 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 
 		clearOptions();
 
-		optionViews.forEach(view -> addOptionView(view, false));
+		if (type == Quiz.QuizType.FREE_TEXT) {
+			CreateQuizOptionView newView = createOption();
+			addOptionView(newView, false);
+		} else {
+			optionViews.forEach(view -> addOptionView(view, false));
+		}
 	}
 
 	private boolean isGenericSet() {
@@ -267,7 +272,7 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 			case NUMERIC ->
 					viewFactory.getInstance(CreateQuizNumericOptionView.class);
 
-			case FREE_TEXT_ANSWER ->
+			case FREE_TEXT ->
 					viewFactory.getInstance(CreateQuizWordCloudOptionView.class);
 
 		};
@@ -421,7 +426,7 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 					}
 
 					// handles the case where the quiz type is free text answer
-					case FREE_TEXT_ANSWER -> {
+					case FREE_TEXT -> {
 
 					}
 				}

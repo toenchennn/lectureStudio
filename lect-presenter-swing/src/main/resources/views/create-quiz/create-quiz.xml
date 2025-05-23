@@ -17,9 +17,10 @@
 		<VBox gap="5">
 			<gridbagconstraints gridx="1" gridy="3" insets="0,0,0,50" />
 			<buttongroup>
-				<RadioButton id="multipleTypeRadioButton" accelerator="ctrl M" selected="true" text="create.quiz.type.multiple" action="typeAction" actionCommand="MULTIPLE" tooltipText="create.quiz.type.multiple" />
-				<RadioButton id="singleTypeRadioButton" accelerator="ctrl S" text="create.quiz.type.single" action="typeAction" actionCommand="SINGLE" tooltipText="create.quiz.type.single" />
-				<RadioButton id="numericTypeRadioButton" accelerator="ctrl N" text="create.quiz.type.numeric" action="typeAction" actionCommand="NUMERIC" tooltipText="create.quiz.type.numeric" />
+				<RadioButton id="multipleTypeRadioButton" 	accelerator="ctrl M" selected="true"	text="create.quiz.type.multiple"	action="typeAction" actionCommand="MULTIPLE"	tooltipText="create.quiz.type.multiple" />
+				<RadioButton id="singleTypeRadioButton"	 	accelerator="ctrl S" 					text="create.quiz.type.single" 		action="typeAction" actionCommand="SINGLE" 		tooltipText="create.quiz.type.single" />
+				<RadioButton id="numericTypeRadioButton" 	accelerator="ctrl N"					text="create.quiz.type.numeric"		action="typeAction" actionCommand="NUMERIC" 	tooltipText="create.quiz.type.numeric" />
+				<RadioButton id="textTypeRadioButton" 		accelerator="ctrl T"					text="create.quiz.type.free_text"	action="typeAction" actionCommand="FREE_TEXT" 	tooltipText="create.quiz.type.free_text" />
 			</buttongroup>
 		</VBox>
 		<Label text="create.quiz.set">

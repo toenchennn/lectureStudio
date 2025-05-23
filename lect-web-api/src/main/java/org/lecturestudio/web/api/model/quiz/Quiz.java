@@ -74,7 +74,7 @@ public class Quiz implements Cloneable, Serializable {
 		/**
 		 * Represents a free text question where users can provide any text as an answer.
 		 */
-		FREE_TEXT_ANSWER
+		FREE_TEXT
 	}
 
 	/**
