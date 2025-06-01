@@ -273,7 +273,7 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 					viewFactory.getInstance(CreateQuizNumericOptionView.class);
 
 			case FREE_TEXT ->
-					viewFactory.getInstance(CreateQuizWordCloudOptionView.class);
+					viewFactory.getInstance(CreateQuizFreeTextOptionView.class);
 
 		};
 	}

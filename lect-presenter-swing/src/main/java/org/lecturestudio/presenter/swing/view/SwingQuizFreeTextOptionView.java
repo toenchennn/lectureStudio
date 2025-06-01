@@ -18,8 +18,11 @@
 
 package org.lecturestudio.presenter.swing.view;
 
-import org.lecturestudio.presenter.api.view.CreateQuizNumericOptionView;
-import org.lecturestudio.presenter.api.view.CreateQuizWordCloudOptionView;
+import com.kennycason.kumo.CollisionMode;
+import com.kennycason.kumo.WordCloud;
+import com.kennycason.kumo.WordFrequency;
+import com.kennycason.kumo.nlp.FrequencyAnalyzer;
+import org.lecturestudio.presenter.api.view.CreateQuizFreeTextOptionView;
 import org.lecturestudio.swing.event.DefaultDocumentListener;
 import org.lecturestudio.swing.util.SwingUtils;
 import org.lecturestudio.swing.view.SwingView;
@@ -30,15 +33,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.text.NumberFormat;
-import java.text.ParseException;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @SwingView(name = "quiz-freetext-option")
-public class SwingQuizFreeTextOptionView extends SwingQuizOptionView implements CreateQuizWordCloudOptionView {
+public class SwingQuizFreeTextOptionView extends SwingQuizOptionView implements CreateQuizFreeTextOptionView {
 
+	private int maxNumberOfAnswers;
 
 	private JCheckBox correctCheckBox;
 
@@ -51,9 +53,7 @@ public class SwingQuizFreeTextOptionView extends SwingQuizOptionView implements 
 
 	@Override
 	public void focus() {
-		SwingUtils.invoke(() -> {
-			optionTextField.requestFocus();
-		});
+		SwingUtils.invoke(() -> optionTextField.requestFocus());
 	}
 
 	@Override
@@ -114,12 +114,48 @@ public class SwingQuizFreeTextOptionView extends SwingQuizOptionView implements 
 	}
 
 	@Override
-	public void setMaxNumberOfAnswers(int maxNumberOfAnswers) {
+	public void setMaxNumberOfAnswers(final int maxNumberOfAnswers) {
+
+		// Ensure that the maxNumberOfAnswers is a positive integer. If not, set it to 1 and throw an error message.
+		try {
+
+			// Check if the maxNumberOfAnswers is greater than 0
+			if(maxNumberOfAnswers <= 0)
+				throw new IllegalArgumentException("maxNumberOfAnswers must be greater than 0");
+
+			this.maxNumberOfAnswers = maxNumberOfAnswers;
+
+		} catch (final IllegalArgumentException e) {
+
+			System.out.println(e.getMessage());
+			this.maxNumberOfAnswers = 1;
+
+		} // end of try-catch
 
 	}
 
 	@Override
 	public int getMaxNumberOfAnswers() {
-		return 0;
+		return maxNumberOfAnswers;
 	}
+
+	@Override
+	public void updateWordCloud() {
+
+	}
+
+	// TODO: Implement further!!!
+	@Override
+	public void renderWordCloud() {
+		final FrequencyAnalyzer frequencyAnalyzer = new FrequencyAnalyzer();
+
+		// TODO: Please adjust the dimension!!!
+		final Dimension dimension = new Dimension(600, 600);
+
+		// Creates a rectangular word cloud with the specified dimension
+		final WordCloud wordCloud = new WordCloud(dimension, CollisionMode.RECTANGLE);
+
+
+	}
+
 }
