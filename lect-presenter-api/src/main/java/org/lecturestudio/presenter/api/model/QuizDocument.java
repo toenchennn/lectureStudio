@@ -41,9 +41,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.kennycason.kumo.CollisionMode;
+import com.kennycason.kumo.WordCloud;
+import com.kennycason.kumo.WordFrequency;
+import com.kennycason.kumo.bg.RectangleBackground;
+import com.kennycason.kumo.font.scale.LinearFontScalar;
+import com.kennycason.kumo.nlp.FrequencyAnalyzer;
+import com.kennycason.kumo.palette.ColorPalette;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -71,10 +80,14 @@ import org.lecturestudio.web.api.model.quiz.QuizOption;
 import org.lecturestudio.web.api.model.quiz.QuizResult;
 
 /**
- * PDF-based quiz document that contains the quiz question and charts showing
- * the result of all received quiz answers.
+ * Represents a document designed for rendering quizzes and their associated results.
+ * This class is responsible for generating PDF documents containing quiz questions,
+ * answers, and result visualizations such as bar charts and pie charts.
+ * It extends the HtmlToPdfDocument class to provide specific functionality for quiz-related content.
  *
- * @author Alex Andres
+ * The QuizDocument class provides both constructors and helper methods for creating
+ * and rendering different types of quiz documents. The class supports multiple-choice
+ * questions, chart rendering, and text layout adjustments specific to quiz presentations.
  */
 public class QuizDocument extends HtmlToPdfDocument {
 
@@ -96,12 +109,99 @@ public class QuizDocument extends HtmlToPdfDocument {
 		return nonNull(result) && !result.getResult().isEmpty();
 	}
 
-	private static PdfDocument createDocument(File templateFile,
-			Rectangle2D contentBounds, Dictionary dict, QuizResult result)
-			throws IOException {
-		PDDocument tplDoc = templateFile.exists() ?
-				PDDocument.load(templateFile) :
-				null;
+
+	/**
+	 * Creates a helper for generating a document representing a multiple-choice quiz,
+	 * rendering questions and associated answer statistics in chart format.
+	 * In other words, it creates a new page with the statistics bar-chart.
+	 * This method serves as an auxiliary method for the method
+	 * {@link #createDocument(File, Rectangle2D, Dictionary, QuizResult) createDocument}.
+	 *
+	 * @param contentBounds the dimensional bounds defining the content area of the document
+	 * @param dict the dictionary used for localization or textual customization
+	 * @param result the quiz result data used to populate the document
+	 * @param tplDoc the template PDF document, which may be null
+	 * @param doc the target PDF document where the quiz will be rendered
+	 * @param quiz the quiz containing questions and answers to be included in the document
+	 * @throws IOException if an I/O error occurs during document creation or rendering
+	 */
+	private static void createDocumentHelperForMultipleChoice(final Rectangle2D contentBounds,
+															  final Dictionary dict,
+															  final QuizResult result,
+															  final @Nullable PDDocument tplDoc,
+															  final PDDocument doc,
+															  final Quiz quiz) throws IOException
+	{
+		// Create a new page with the statistics bar-chart.
+		renderChartQuestions(tplDoc, doc, contentBounds, quiz);
+		renderChart(tplDoc, doc, result,
+				createBarChartAnswerStats(dict, result), contentBounds);
+	}
+
+	/**
+	 * Creates a helper for generating a document representing a free-text quiz.
+	 * This method assists in rendering free-text quiz responses and the relevant
+	 * content within the specified target PDF document.
+	 * It serves as a method for handling free-text input quizzes and is an auxiliary method for the method
+	 * {@link #createDocument(File, Rectangle2D, Dictionary, QuizResult) createDocument}.
+	 *
+	 * @param contentBounds the dimensional bounds defining the content area of the document
+	 * @param dict the dictionary used for localization or textual customization
+	 * @param result the quiz result data used to populate the document
+	 * @param tplDoc the template PDF document, which may be null
+	 * @param doc the target PDF document where the quiz will be rendered
+	 * @param quiz the quiz containing questions and answers to be included in the document
+	 * @throws IOException if an I/O error occurs during document creation or rendering
+	 */
+	private static void createDocumentHelperForFreeText(final Rectangle2D contentBounds,
+														final Dictionary dict,
+														final QuizResult result,
+														final @Nullable PDDocument tplDoc,
+														final PDDocument doc,
+														final Quiz quiz) throws IOException
+	{
+
+		// TODO: Please replace it with a correct file path !!!
+		final String filePath = "text/my_text_file.txt";
+
+		// TODO: Please also replace it with a correct file path !!!
+		final String outputFileName = "kumo-core/output/wordcloud_rectangle.png";
+
+		// Creates the instances needed for the word cloud
+		final FrequencyAnalyzer frequencyAnalyzer = new FrequencyAnalyzer();
+		final List<WordFrequency> wordFrequencies = frequencyAnalyzer.load(filePath);
+		final Dimension dimension = new Dimension(600, 600);
+		final WordCloud wordCloud = new WordCloud(dimension, CollisionMode.RECTANGLE);
+
+		// renders the word cloud
+		wordCloud.setPadding(0);
+		wordCloud.setBackground(new RectangleBackground(dimension));
+		wordCloud.setColorPalette(new ColorPalette(Color.RED, Color.GREEN, Color.YELLOW, Color.BLUE));
+		wordCloud.setFontScalar(new LinearFontScalar(10, 40));
+		wordCloud.build(wordFrequencies);
+		wordCloud.writeToFile(outputFileName);
+	}
+
+	/**
+	 * Creates a PDF document based on a quiz template and results. The method generates
+	 * pages for different types of quiz content like questions, multiple-choice statistics,
+	 * free-text responses, and associated charts (bar and pie charts). It uses a given
+	 * template file, bounds, and data to format and render the document.
+	 *
+	 * @param templateFile the file to use as a template for creating the document; if it doesn't exist, no template is used
+	 * @param contentBounds the dimensional bounds defining the content region for the document
+	 * @param dict the dictionary used for localization or textual customization in the rendering process
+	 * @param result the quiz result data containing questions, answers, and statistics to be displayed in the document
+	 * @return a new instance of {@link PdfDocument} representing the generated quiz document
+	 * @throws IOException if an I/O error occurs during the document creation or rendering process
+	 */
+	private static @NotNull PdfDocument createDocument(
+			File templateFile,
+			Rectangle2D contentBounds,
+			Dictionary dict,
+			QuizResult result) throws IOException
+	{
+		PDDocument tplDoc = templateFile.exists() ? PDDocument.load(templateFile)  :  null;
 		PDDocument doc = new PDDocument();
 
 		Quiz quiz = result.getQuiz();
@@ -110,13 +210,24 @@ public class QuizDocument extends HtmlToPdfDocument {
 		// Create the first page with the question on it.
 		renderQuestion(tplDoc, doc, contentBounds, quiz);
 
-		if (!result.getResult().isEmpty()) {
+		// Checks if the list of results is empty.
+		final boolean isResultEmpty = result.getResult().isEmpty();
+
+		if (!isResultEmpty) {
+
 			if (type == QuizType.MULTIPLE) {
+
 				// Create a new page with the statistics bar-chart.
-				renderChartQuestions(tplDoc, doc, contentBounds, quiz);
-				renderChart(tplDoc, doc, result,
-						createBarChartAnswerStats(dict, result), contentBounds);
-			}
+				createDocumentHelperForMultipleChoice(contentBounds, dict, result, tplDoc, doc, quiz);
+
+			} else if (type == QuizType.FREE_TEXT) {
+
+				System.out.println("This is a free-text option."); // debug
+
+				// Create a new page with a word cloud.
+				createDocumentHelperForFreeText(contentBounds, dict, result, tplDoc, doc, quiz);
+
+			} // end of if-else
 
 			// Create a new page with the bar-chart.
 			renderChartQuestions(tplDoc, doc, contentBounds, quiz);
@@ -127,7 +238,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 			renderChartQuestions(tplDoc, doc, contentBounds, quiz);
 			renderChart(tplDoc, doc, result, createPieChart(dict, result),
 					contentBounds);
-		}
+		} // end of if
 
 		PdfDocument pdfDocument = createPdfDocument(doc);
 
