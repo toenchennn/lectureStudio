@@ -28,18 +28,19 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Stream;
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.JsonDeserializer;
 
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
 import org.lecturestudio.core.model.Document;
 import org.lecturestudio.core.util.FileUtils;
 import org.lecturestudio.presenter.api.quiz.JsonQuizFileRepository;
 import org.lecturestudio.presenter.api.quiz.QuizFileReader;
 import org.lecturestudio.presenter.api.quiz.QuizReader;
 import org.lecturestudio.presenter.api.quiz.QuizRepository;
+import org.lecturestudio.web.api.data.bind.QuizDeserializer;
 import org.lecturestudio.web.api.model.quiz.Quiz;
 import org.lecturestudio.web.api.model.quiz.Quiz.QuizSet;
 
@@ -65,14 +66,14 @@ public class QuizDataSource {
 	 * This constant is primarily used within file operations to identify
 	 * and process legacy quiz files.
 	 */
-	private static final String LEGACY_QUIZ_FILE_ENDING = ".quizzes_old";
+	private static final String LEGACY_QUIZ_FILE_ENDING = ".quizzes";
 
 	/**
 	 * Represents the file extension used for the storage of quizzes in the current file format.
 	 * This constant is used to distinguish the new quiz file format from legacy formats, enabling
 	 * the system to correctly identify and process files containing quizzes.
 	 */
-	private static final String CURRENT_QUIZ_FILE_ENDING = ".quizzes";
+	private static final String CURRENT_QUIZ_FILE_ENDING = ".json";
 
 	/**
 	 * The file representing the original quiz data source.
@@ -95,7 +96,14 @@ public class QuizDataSource {
 	public QuizDataSource(final File dataFile) {
 		quizFile = dataFile;
 		repository = new JsonQuizFileRepository(
-				new File(FileUtils.stripExtension(dataFile) + ".quizzes"));
+				new File(FileUtils.stripExtension(dataFile) + CURRENT_QUIZ_FILE_ENDING));
+
+		try {
+			migrateQuizFormat(dataFile);
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
@@ -209,58 +217,6 @@ public class QuizDataSource {
 		repository.save(quiz);
 	}
 
-
-	public static @NotNull QuizDataSource migrateQuizFormatV1(final @NotNull QuizDataSource quizDataSource)
-			throws CloneNotSupportedException {
-
-		// It is used to clearly identify the new file for later renaming
-		StringBuilder nonceBuilder = new StringBuilder();
-		for(int i = 0 ; i < 4 ; i++)
-			nonceBuilder.append(ThreadLocalRandom.current().nextInt());
-
-		// The resulting nonce
-		final String nonceOfNewFile = nonceBuilder.toString();
-
-		final File sourceFile = new File(quizDataSource.getQuizFile().getName());
-		final File quizFileDeepCopy = new File(nonceOfNewFile);
-
-		// Copies the file content of the old quiz format to the new quiz format
-		try {
-
-			Files.copy(
-					sourceFile.toPath(),
-					quizFileDeepCopy.toPath(),
-					StandardCopyOption.REPLACE_EXISTING
-			);
-
-		} catch (IOException e) {
-			System.out.println(e.getMessage());
-			System.out.println("Migrating quiz format failed! Abort and rollback.");
-		}
-
-		// Renames the old quiz file to a new name with a new ending: quiz.quizzes -> quiz.quizzes_old
-		File originalLegacyFile = new File("quiz.quizzes");
-		File renamedLegacyFile = new File("quiz.quizzes_old");
-
-		// Notifies if the legacy quiz file is successfully renamed
-		if(originalLegacyFile.renameTo(renamedLegacyFile))
-			System.out.println("Legacy quiz file successfully renamed.");
-		else
-			System.out.println("Failed to rename legacy quiz file.");
-
-		// Renames the quiz with the new name format such that it has the extension .quizzes.
-		File originalNewFile = new File(nonceOfNewFile);
-		File renamedNewFile = new File("quiz.quizzes");
-
-		// Notifies if the new quiz file is successfully renamed
-		if(originalNewFile.renameTo(renamedNewFile))
-			System.out.println("New quiz file successfully renamed.");
-		else
-			System.out.println("Failed to rename new quiz file.");
-
-		return new QuizDataSource(renamedNewFile);
-	}
-
 	/**
 	 * Replaces an existing quiz with a new quiz in the generic repository.
 	 * If the old quiz does not exist, the new quiz will be appended to the repository.
@@ -346,6 +302,37 @@ public class QuizDataSource {
 		QuizReader reader = new QuizFileReader(quizFile, set);
 
         return reader.readQuizzes();
+	}
+
+	/**
+	 * Migrates quiz data from legacy format to the current format.
+	 * <p>
+	 * This method attempts to read quizzes from the legacy file format, and if any
+	 * are found, saves them to the current repository format. After successful migration,
+	 * the original data file is moved to a backup with the ".old" extension.
+	 *
+	 * @param dataFile The quiz data file to migrate.
+	 *
+	 * @throws IOException If an I/O error occurs during the reading, saving, or moving
+	 *                     of files during the migration process.
+	 */
+	private void migrateQuizFormat(final File dataFile) throws IOException {
+		File legacyFile = new File(FileUtils.stripExtension(dataFile) + LEGACY_QUIZ_FILE_ENDING);
+		// Set up legacy quiz deserializers.
+		Map<Class<?>, JsonDeserializer<?>> deserializers = Map.of(Quiz.class, new QuizDeserializer());
+		// Initialize a repository to access quizzes stored in the legacy file format.
+		JsonQuizFileRepository legacyRepository = new JsonQuizFileRepository(legacyFile, deserializers);
+		List<Quiz> legacyQuizzes = legacyRepository.findAll();
+
+		// Only proceed with migration if legacy quizzes exist.
+		if (!legacyQuizzes.isEmpty()) {
+		    // Save all quizzes from the legacy format to the current repository format
+			repository.saveAll(legacyQuizzes);
+
+		    // Rename the legacy file with .old extension to indicate it has been migrated
+			Files.move(Paths.get(legacyFile.getAbsolutePath()),
+					Paths.get(legacyFile.getAbsolutePath() + ".old"));
+		}
 	}
 
 	/**

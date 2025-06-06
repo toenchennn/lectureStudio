@@ -396,7 +396,6 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 				QuizOption option = options.get(i);
 
 				switch (quiz.getType()) {
-
 					// handles the case where the quiz type is multiple choice
 					case MULTIPLE, SINGLE -> {
 						CreateQuizOptionView optionView = viewFactory.getInstance(

@@ -24,7 +24,6 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
-import org.jetbrains.annotations.NotNull;
 import org.lecturestudio.web.api.filter.FilterRule;
 import org.lecturestudio.web.api.filter.InputFieldFilter;
 import org.lecturestudio.web.api.filter.InputFieldRule;
@@ -230,7 +229,7 @@ public class Quiz implements Cloneable, Serializable {
 	 *
 	 * @param options The list of answer option texts to set.
 	 */
-	public void setOptions(@NotNull List<QuizOption> options) {
+	public void setOptions(List<QuizOption> options) {
 		this.options = options;
 	}
 
@@ -364,7 +363,7 @@ public class Quiz implements Cloneable, Serializable {
 		quiz.setQuizSet(getQuizSet());
 
 		for (QuizOption o : getOptions()) {
-			quiz.addOption(o);
+			quiz.addOption(new QuizOption(o.optionText(), o.correct()));
 		}
 
 		for (InputFieldRule<String> rule : getInputFilter().getRules()) {

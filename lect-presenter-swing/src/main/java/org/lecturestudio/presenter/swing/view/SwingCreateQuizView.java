@@ -50,7 +50,6 @@ import javax.swing.text.JTextComponent;
 
 import net.atlanticbb.tantlinger.shef.HTMLEditorPane;
 
-import org.jetbrains.annotations.NotNull;
 import org.lecturestudio.core.model.Document;
 import org.lecturestudio.core.view.Action;
 import org.lecturestudio.core.view.ConsumerAction;
@@ -240,7 +239,7 @@ public class SwingCreateQuizView extends ContentPane implements CreateQuizView {
 	}
 
 	@Override
-	public void setQuizType(final @NotNull QuizType type) {
+	public void setQuizType(final QuizType type) {
 		// Lists all possible types of quizzes (MC, Numeric, single answer) on the quiz creation menu
 		SwingUtils.invoke(() -> {
 			switch (type) {

@@ -1,7 +1,5 @@
 package org.lecturestudio.web.api.model.quiz;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Objects;
 
 /**
@@ -30,7 +28,6 @@ public record QuizOption(String optionText, boolean correct) {
 	}
 
 	@Override
-	@NotNull
 	public String toString() {
 		return "QuizOption{" +
 				"optionText='" + optionText + '\'' +

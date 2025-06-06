@@ -51,8 +51,6 @@ import com.kennycason.kumo.palette.ColorPalette;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -128,7 +126,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 	private static void createDocumentHelperForMultipleChoice(final Rectangle2D contentBounds,
 															  final Dictionary dict,
 															  final QuizResult result,
-															  final @Nullable PDDocument tplDoc,
+															  final PDDocument tplDoc,
 															  final PDDocument doc,
 															  final Quiz quiz) throws IOException
 	{
@@ -156,7 +154,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 	private static void createDocumentHelperForFreeText(final Rectangle2D contentBounds,
 														final Dictionary dict,
 														final QuizResult result,
-														final @Nullable PDDocument tplDoc,
+														final PDDocument tplDoc,
 														final PDDocument doc,
 														final Quiz quiz) throws IOException
 	{
@@ -195,7 +193,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 	 * @return a new instance of {@link PdfDocument} representing the generated quiz document
 	 * @throws IOException if an I/O error occurs during the document creation or rendering process
 	 */
-	private static @NotNull PdfDocument createDocument(
+	private static PdfDocument createDocument(
 			File templateFile,
 			Rectangle2D contentBounds,
 			Dictionary dict,
