@@ -41,13 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.kennycason.kumo.CollisionMode;
-import com.kennycason.kumo.WordCloud;
-import com.kennycason.kumo.WordFrequency;
-import com.kennycason.kumo.bg.RectangleBackground;
-import com.kennycason.kumo.font.scale.LinearFontScalar;
-import com.kennycason.kumo.palette.ColorPalette;
-
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 
@@ -70,8 +63,10 @@ import org.lecturestudio.core.model.DocumentType;
 import org.lecturestudio.core.pdf.PdfDocument;
 import org.lecturestudio.core.pdf.pdfbox.PDFGraphics2D;
 import org.lecturestudio.core.util.FileUtils;
+import org.lecturestudio.presenter.api.quiz.wordcloud.HorizontalWordCloudLayout;
+import org.lecturestudio.presenter.api.quiz.wordcloud.LayoutConfig;
+import org.lecturestudio.presenter.api.quiz.wordcloud.WordItem;
 import org.lecturestudio.presenter.api.util.NumericStringComparator;
-import org.lecturestudio.presenter.api.util.WordCloudG2D;
 import org.lecturestudio.web.api.model.quiz.Quiz;
 import org.lecturestudio.web.api.model.quiz.Quiz.QuizType;
 import org.lecturestudio.web.api.model.quiz.QuizAnswer;
@@ -87,6 +82,8 @@ import org.lecturestudio.web.api.model.quiz.QuizResult;
  * The QuizDocument class provides both constructors and helper methods for creating
  * and rendering different types of quiz documents. The class supports multiple-choice
  * questions, chart rendering, and text layout adjustments specific to quiz presentations.
+ *
+ * @author Alex Andres
  */
 public class QuizDocument extends HtmlToPdfDocument {
 
@@ -125,9 +122,9 @@ public class QuizDocument extends HtmlToPdfDocument {
 	 *
 	 * @throws IOException if an I/O error occurs during document creation or rendering.
 	 */
-	private static void createDocumentHelperForMultipleChoice(final Rectangle2D contentBounds, final Dictionary dict,
-															  final QuizResult result, final PDDocument tplDoc,
-															  final PDDocument doc, final Quiz quiz) throws IOException {
+	private static void createMultipleChoicePage(final Rectangle2D contentBounds, final Dictionary dict,
+												 final QuizResult result, final PDDocument tplDoc,
+												 final PDDocument doc, final Quiz quiz) throws IOException {
 		// Create a new page with the statistics bar-chart.
 		renderChartQuestions(tplDoc, doc, contentBounds, quiz);
 		renderChart(tplDoc, doc, result, createBarChartAnswerStats(dict, result), contentBounds);
@@ -149,23 +146,21 @@ public class QuizDocument extends HtmlToPdfDocument {
 	 *
 	 * @throws IOException if an I/O error occurs during document creation or rendering.
 	 */
-	private static void createDocumentHelperForFreeText(final Rectangle2D contentBounds,
-														final Dictionary dict,
-														final QuizResult result,
-														final PDDocument tplDoc,
-														final PDDocument doc,
-														final Quiz quiz) throws IOException {
-		List<WordFrequency> wordFrequencies = new ArrayList<>();
+	private static void createWordCloutPage(final Rectangle2D contentBounds,
+											final Dictionary dict,
+											final QuizResult result,
+											final PDDocument tplDoc,
+											final PDDocument doc,
+											final Quiz quiz) throws IOException {
+		List<WordItem> words = new ArrayList<>();
 		Map<QuizAnswer, Integer> resultMap = result.getResult();
-
-		System.out.println(resultMap);
 
 		// Create a word frequency list.
 		for (var entry : resultMap.entrySet()) {
 			// Create a word frequency for each answer.
 			String[] options = entry.getKey().getOptions();
 			if (options.length > 0) {
-				wordFrequencies.add(new WordFrequency(options[0], entry.getValue()));
+				words.add(new WordItem(options[0], entry.getValue()));
 			}
 		}
 
@@ -182,26 +177,26 @@ public class QuizDocument extends HtmlToPdfDocument {
 
 		Rectangle2D pageBounds = getPageBounds(tplDoc);
 
+		int width = (int) (contentBounds.getWidth() * pageBounds.getWidth());
+		int height = (int) (contentBounds.getHeight() * pageBounds.getHeight());
 		int marginX = (int) (contentBounds.getX() * pageBounds.getWidth());
 		int marginY = (int) (contentBounds.getY() * pageBounds.getHeight());
 
-		PDFGraphics2D g2dStream = new PDFGraphics2D(doc, pdPage, false);
+		LayoutConfig customConfig = new LayoutConfig()
+				.horizontalPadding(12)
+				.verticalPadding(8)
+				.maxVerticalVariance(20)
+				.enableVerticalVariance(true)
+				.minLineSpacing(15);
 
-		final Dimension dimension = new Dimension(
-				(int) (pageBounds.getWidth()),
-				(int) (pageBounds.getHeight()));
-		final WordCloud wordCloud = new WordCloud(dimension, CollisionMode.RECTANGLE);
-		wordCloud.setPadding(0);
-		wordCloud.setBackground(new RectangleBackground(dimension));
-		wordCloud.setBackgroundColor(new Color(255, 255, 255, 0));
-		wordCloud.setColorPalette(new ColorPalette(Color.RED, Color.GREEN, Color.YELLOW, Color.BLUE));
-		wordCloud.setFontScalar(new LinearFontScalar(10, 40));
-		wordCloud.build(wordFrequencies);
+		HorizontalWordCloudLayout layout = new HorizontalWordCloudLayout(width, height, customConfig);
+		layout.layoutWords(words);
 
-		g2dStream.drawImage(wordCloud.getBufferedImage(), 0, 0, null);
-
-//		wordCloud.writeToFile("wordcloud.png");
-
+		PDFGraphics2D g2dStream = new PDFGraphics2D(doc, pdPage, true);
+		// Move to the top-left corner.
+		g2dStream.transform(new AffineTransform(1, 0, 0, -1, 0, pdPage.getMediaBox().getHeight()));
+		g2dStream.translate(marginX, marginY);
+		layout.renderWordCloud(g2dStream, words);
 		g2dStream.close();
 	}
 
@@ -236,12 +231,12 @@ public class QuizDocument extends HtmlToPdfDocument {
 		if (!result.getResult().isEmpty()) {
 			if (type == QuizType.FREE_TEXT) {
 				// Create a new page with a word cloud.
-				createDocumentHelperForFreeText(contentBounds, dict, result, tplDoc, doc, quiz);
+				createWordCloutPage(contentBounds, dict, result, tplDoc, doc, quiz);
 			}
 			else {
 				if (type == QuizType.MULTIPLE) {
 					// Create a new page with the statistics bar-chart.
-					createDocumentHelperForMultipleChoice(contentBounds, dict, result, tplDoc, doc, quiz);
+					createMultipleChoicePage(contentBounds, dict, result, tplDoc, doc, quiz);
 				}
 
 				// Create a new page with the bar-chart.
@@ -425,8 +420,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 		int chartHeight = (int) (contentBounds.getHeight() * pageBounds.getHeight() / 1.75);
 
 		// Set (bar)chart y-axis tick spacing.
-		if (chart instanceof CategoryChart) {
-			CategoryChart catChart = (CategoryChart) chart;
+		if (chart instanceof CategoryChart catChart) {
 			Map<String, CategorySeries> seriesMap = catChart.getSeriesMap();
 			double yMax = 0;
 
