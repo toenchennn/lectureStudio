@@ -104,6 +104,7 @@
 			<artifactId>jcefmaven</artifactId>
 			<version>127.3.1</version>
 		</dependency>
+
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
@@ -122,5 +123,11 @@
             <version>1.18.34</version>
             <scope>provided</scope>
         </dependency>
+
+		<dependency>
+			<groupId>com.kennycason</groupId>
+			<artifactId>kumo-core</artifactId>
+			<version>1.28</version>
+		</dependency>
     </dependencies>
 </project>

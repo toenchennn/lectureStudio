@@ -135,6 +135,13 @@ public class QuizResult {
 				return false;
 			}
 		}
+		else if (quiz.getType() == Quiz.QuizType.FREE_TEXT) {
+			for (String option : answer.getOptions()) {
+				if (option.isBlank()) {
+					return false;
+				}
+			}
+		}
 		else {
 			try {
 				for (String option : answer.getOptions()) {
@@ -153,7 +160,7 @@ public class QuizResult {
 
 	/**
 	 * Attempts to parse a string value as a number.
-	 * First tries to parse as integer, then as float.
+	 * First try to parse as integer, then as float.
 	 * Handles comma as decimal separator by converting it to a period.
 	 *
 	 * @param value The string to parse.

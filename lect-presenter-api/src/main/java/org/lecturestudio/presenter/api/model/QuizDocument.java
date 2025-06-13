@@ -46,8 +46,8 @@ import com.kennycason.kumo.WordCloud;
 import com.kennycason.kumo.WordFrequency;
 import com.kennycason.kumo.bg.RectangleBackground;
 import com.kennycason.kumo.font.scale.LinearFontScalar;
-import com.kennycason.kumo.nlp.FrequencyAnalyzer;
 import com.kennycason.kumo.palette.ColorPalette;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 
@@ -71,6 +71,7 @@ import org.lecturestudio.core.pdf.PdfDocument;
 import org.lecturestudio.core.pdf.pdfbox.PDFGraphics2D;
 import org.lecturestudio.core.util.FileUtils;
 import org.lecturestudio.presenter.api.util.NumericStringComparator;
+import org.lecturestudio.presenter.api.util.WordCloudG2D;
 import org.lecturestudio.web.api.model.quiz.Quiz;
 import org.lecturestudio.web.api.model.quiz.Quiz.QuizType;
 import org.lecturestudio.web.api.model.quiz.QuizAnswer;
@@ -82,7 +83,7 @@ import org.lecturestudio.web.api.model.quiz.QuizResult;
  * This class is responsible for generating PDF documents containing quiz questions,
  * answers, and result visualizations such as bar charts and pie charts.
  * It extends the HtmlToPdfDocument class to provide specific functionality for quiz-related content.
- *
+ * <p>
  * The QuizDocument class provides both constructors and helper methods for creating
  * and rendering different types of quiz documents. The class supports multiple-choice
  * questions, chart rendering, and text layout adjustments specific to quiz presentations.
@@ -115,25 +116,21 @@ public class QuizDocument extends HtmlToPdfDocument {
 	 * This method serves as an auxiliary method for the method
 	 * {@link #createDocument(File, Rectangle2D, Dictionary, QuizResult) createDocument}.
 	 *
-	 * @param contentBounds the dimensional bounds defining the content area of the document
-	 * @param dict the dictionary used for localization or textual customization
-	 * @param result the quiz result data used to populate the document
-	 * @param tplDoc the template PDF document, which may be null
-	 * @param doc the target PDF document where the quiz will be rendered
-	 * @param quiz the quiz containing questions and answers to be included in the document
-	 * @throws IOException if an I/O error occurs during document creation or rendering
+	 * @param contentBounds the dimensional bounds defining the content area of the document.
+	 * @param dict          the dictionary used for localization or textual customization.
+	 * @param result        the quiz result data used to populate the document.
+	 * @param tplDoc        the template PDF document, which may be null.
+	 * @param doc           the target PDF document where the quiz will be rendered.
+	 * @param quiz          the quiz containing questions and answers to be included in the document.
+	 *
+	 * @throws IOException if an I/O error occurs during document creation or rendering.
 	 */
-	private static void createDocumentHelperForMultipleChoice(final Rectangle2D contentBounds,
-															  final Dictionary dict,
-															  final QuizResult result,
-															  final PDDocument tplDoc,
-															  final PDDocument doc,
-															  final Quiz quiz) throws IOException
-	{
+	private static void createDocumentHelperForMultipleChoice(final Rectangle2D contentBounds, final Dictionary dict,
+															  final QuizResult result, final PDDocument tplDoc,
+															  final PDDocument doc, final Quiz quiz) throws IOException {
 		// Create a new page with the statistics bar-chart.
 		renderChartQuestions(tplDoc, doc, contentBounds, quiz);
-		renderChart(tplDoc, doc, result,
-				createBarChartAnswerStats(dict, result), contentBounds);
+		renderChart(tplDoc, doc, result, createBarChartAnswerStats(dict, result), contentBounds);
 	}
 
 	/**
@@ -143,41 +140,69 @@ public class QuizDocument extends HtmlToPdfDocument {
 	 * It serves as a method for handling free-text input quizzes and is an auxiliary method for the method
 	 * {@link #createDocument(File, Rectangle2D, Dictionary, QuizResult) createDocument}.
 	 *
-	 * @param contentBounds the dimensional bounds defining the content area of the document
-	 * @param dict the dictionary used for localization or textual customization
-	 * @param result the quiz result data used to populate the document
-	 * @param tplDoc the template PDF document, which may be null
-	 * @param doc the target PDF document where the quiz will be rendered
-	 * @param quiz the quiz containing questions and answers to be included in the document
-	 * @throws IOException if an I/O error occurs during document creation or rendering
+	 * @param contentBounds the dimensional bounds defining the content area of the document.
+	 * @param dict          the dictionary used for localization or textual customization.
+	 * @param result        the quiz result data used to populate the document.
+	 * @param tplDoc        the template PDF document, which may be null.
+	 * @param doc           the target PDF document where the quiz will be rendered.
+	 * @param quiz          the quiz containing questions and answers to be included in the document.
+	 *
+	 * @throws IOException if an I/O error occurs during document creation or rendering.
 	 */
 	private static void createDocumentHelperForFreeText(final Rectangle2D contentBounds,
 														final Dictionary dict,
 														final QuizResult result,
 														final PDDocument tplDoc,
 														final PDDocument doc,
-														final Quiz quiz) throws IOException
-	{
+														final Quiz quiz) throws IOException {
+		List<WordFrequency> wordFrequencies = new ArrayList<>();
+		Map<QuizAnswer, Integer> resultMap = result.getResult();
 
-		// TODO: Please replace it with a correct file path !!!
-		final String filePath = "text/my_text_file.txt";
+		System.out.println(resultMap);
 
-		// TODO: Please also replace it with a correct file path !!!
-		final String outputFileName = "kumo-core/output/wordcloud_rectangle.png";
+		// Create a word frequency list.
+		for (var entry : resultMap.entrySet()) {
+			// Create a word frequency for each answer.
+			String[] options = entry.getKey().getOptions();
+			if (options.length > 0) {
+				wordFrequencies.add(new WordFrequency(options[0], entry.getValue()));
+			}
+		}
 
-		// Creates the instances needed for the word cloud
-		final FrequencyAnalyzer frequencyAnalyzer = new FrequencyAnalyzer();
-		final List<WordFrequency> wordFrequencies = frequencyAnalyzer.load(filePath);
-		final Dimension dimension = new Dimension(600, 600);
+		// Create a new page with a word cloud.
+		var jdoc = Jsoup.parseBodyFragment("");
+		jdoc.head().append("<link rel=\"stylesheet\" href=\"html/quiz.css\">");
+		jdoc.outputSettings().prettyPrint(true);
+
+		renderHtmlPage(jdoc, tplDoc, doc, contentBounds, new HashMap<>());
+
+		// Add the word cloud image to the last page.
+		int pageIndex = doc.getNumberOfPages() - 1;
+		PDPage pdPage = doc.getPage(pageIndex);
+
+		Rectangle2D pageBounds = getPageBounds(tplDoc);
+
+		int marginX = (int) (contentBounds.getX() * pageBounds.getWidth());
+		int marginY = (int) (contentBounds.getY() * pageBounds.getHeight());
+
+		PDFGraphics2D g2dStream = new PDFGraphics2D(doc, pdPage, false);
+
+		final Dimension dimension = new Dimension(
+				(int) (pageBounds.getWidth()),
+				(int) (pageBounds.getHeight()));
 		final WordCloud wordCloud = new WordCloud(dimension, CollisionMode.RECTANGLE);
-
-		// renders the word cloud
 		wordCloud.setPadding(0);
 		wordCloud.setBackground(new RectangleBackground(dimension));
+		wordCloud.setBackgroundColor(new Color(255, 255, 255, 0));
 		wordCloud.setColorPalette(new ColorPalette(Color.RED, Color.GREEN, Color.YELLOW, Color.BLUE));
 		wordCloud.setFontScalar(new LinearFontScalar(10, 40));
 		wordCloud.build(wordFrequencies);
-		wordCloud.writeToFile(outputFileName);
+
+		g2dStream.drawImage(wordCloud.getBufferedImage(), 0, 0, null);
+
+//		wordCloud.writeToFile("wordcloud.png");
+
+		g2dStream.close();
 	}
 
 	/**
@@ -197,9 +222,8 @@ public class QuizDocument extends HtmlToPdfDocument {
 			File templateFile,
 			Rectangle2D contentBounds,
 			Dictionary dict,
-			QuizResult result) throws IOException
-	{
-		PDDocument tplDoc = templateFile.exists() ? PDDocument.load(templateFile)  :  null;
+			QuizResult result) throws IOException {
+		PDDocument tplDoc = templateFile.exists() ? PDDocument.load(templateFile) : null;
 		PDDocument doc = new PDDocument();
 
 		Quiz quiz = result.getQuiz();
@@ -209,34 +233,26 @@ public class QuizDocument extends HtmlToPdfDocument {
 		renderQuestion(tplDoc, doc, contentBounds, quiz);
 
 		// Checks if the list of results is empty.
-		final boolean isResultEmpty = result.getResult().isEmpty();
-
-		if (!isResultEmpty) {
-
-			if (type == QuizType.MULTIPLE) {
-
-				// Create a new page with the statistics bar-chart.
-				createDocumentHelperForMultipleChoice(contentBounds, dict, result, tplDoc, doc, quiz);
-
-			} else if (type == QuizType.FREE_TEXT) {
-
-				System.out.println("This is a free-text option."); // debug
-
+		if (!result.getResult().isEmpty()) {
+			if (type == QuizType.FREE_TEXT) {
 				// Create a new page with a word cloud.
 				createDocumentHelperForFreeText(contentBounds, dict, result, tplDoc, doc, quiz);
+			}
+			else {
+				if (type == QuizType.MULTIPLE) {
+					// Create a new page with the statistics bar-chart.
+					createDocumentHelperForMultipleChoice(contentBounds, dict, result, tplDoc, doc, quiz);
+				}
 
-			} // end of if-else
+				// Create a new page with the bar-chart.
+				renderChartQuestions(tplDoc, doc, contentBounds, quiz);
+				renderChart(tplDoc, doc, result, createBarChart(dict, result), contentBounds);
 
-			// Create a new page with the bar-chart.
-			renderChartQuestions(tplDoc, doc, contentBounds, quiz);
-			renderChart(tplDoc, doc, result, createBarChart(dict, result),
-					contentBounds);
-
-			// Create a new page with the pie-chart.
-			renderChartQuestions(tplDoc, doc, contentBounds, quiz);
-			renderChart(tplDoc, doc, result, createPieChart(dict, result),
-					contentBounds);
-		} // end of if
+				// Create a new page with the pie-chart.
+				renderChartQuestions(tplDoc, doc, contentBounds, quiz);
+				renderChart(tplDoc, doc, result, createPieChart(dict, result), contentBounds);
+			}
+		}
 
 		PdfDocument pdfDocument = createPdfDocument(doc);
 
@@ -266,7 +282,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 			String newPath = Paths.get("quiz", imgFile.getName()).toString()
 					.replaceAll("\\\\", "/");
 
-			// Replace by new relative web-root path.
+			// Replace src by new relative web-root path.
 			e.attr("src", newPath);
 
 			resourceMap.put(newPath, src);
@@ -323,7 +339,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 
 	private static String makeTextFit(String text, Dimension areaToFit) {
 		if (!textFits(text, areaToFit)) {
-			// Remove last word and try again.
+			// Remove the last word and try again.
 			List<String> words = new ArrayList<>(List.of(text.split("\\s+")));
 			words.remove(words.size() - 1);
 
@@ -428,7 +444,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 		PDPage pdPage = doc.getPage(pageIndex);
 
 		PDFGraphics2D g2dStream = new PDFGraphics2D(doc, pdPage, true);
-		// Move to top-left corner.
+		// Move to the top-left corner.
 		g2dStream.transform(new AffineTransform(1, 0, 0, -1, 0, pdPage.getMediaBox().getHeight()));
 		g2dStream.translate(marginX, marginY);
 		chart.paint(g2dStream, chartWidth, chartHeight);
