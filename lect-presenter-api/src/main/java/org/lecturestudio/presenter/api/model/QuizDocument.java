@@ -146,7 +146,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 	 *
 	 * @throws IOException if an I/O error occurs during document creation or rendering.
 	 */
-	private static void createWordCloutPage(final Rectangle2D contentBounds,
+	private static void createWordCloudPage(final Rectangle2D contentBounds,
 											final Dictionary dict,
 											final QuizResult result,
 											final PDDocument tplDoc,
@@ -206,12 +206,17 @@ public class QuizDocument extends HtmlToPdfDocument {
 	 * free-text responses, and associated charts (bar and pie charts). It uses a given
 	 * template file, bounds, and data to format and render the document.
 	 *
-	 * @param templateFile the file to use as a template for creating the document; if it doesn't exist, no template is used
-	 * @param contentBounds the dimensional bounds defining the content region for the document
-	 * @param dict the dictionary used for localization or textual customization in the rendering process
-	 * @param result the quiz result data containing questions, answers, and statistics to be displayed in the document
-	 * @return a new instance of {@link PdfDocument} representing the generated quiz document
-	 * @throws IOException if an I/O error occurs during the document creation or rendering process
+	 * @param templateFile  the file to use as a template for creating the document;
+	 *                      if it doesn't exist, no template is used.
+	 * @param contentBounds the dimensional bounds defining the content region for the document.
+	 * @param dict          the dictionary used for localization or textual customization in the
+	 *                      rendering process.
+	 * @param result        the quiz result data containing questions, answers, and statistics
+	 *                      to be displayed in the document.
+	 *
+	 * @return a new instance of {@link PdfDocument} representing the generated quiz document.
+	 *
+	 * @throws IOException if an I/O error occurs during the document creation or rendering process.
 	 */
 	private static PdfDocument createDocument(
 			File templateFile,
@@ -231,7 +236,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 		if (!result.getResult().isEmpty()) {
 			if (type == QuizType.FREE_TEXT) {
 				// Create a new page with a word cloud.
-				createWordCloutPage(contentBounds, dict, result, tplDoc, doc, quiz);
+				createWordCloudPage(contentBounds, dict, result, tplDoc, doc, quiz);
 			}
 			else {
 				if (type == QuizType.MULTIPLE) {
