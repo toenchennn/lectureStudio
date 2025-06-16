@@ -136,11 +136,7 @@ public class QuizResult {
 			}
 		}
 		else if (quiz.getType() == Quiz.QuizType.FREE_TEXT) {
-			for (String option : answer.getOptions()) {
-				if (option.isBlank()) {
-					return false;
-				}
-			}
+			// Implement restriction for free text answers if needed.
 		}
 		else {
 			try {

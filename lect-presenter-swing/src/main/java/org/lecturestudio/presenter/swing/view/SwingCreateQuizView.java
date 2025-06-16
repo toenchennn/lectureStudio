@@ -86,9 +86,6 @@ public class SwingCreateQuizView extends ContentPane implements CreateQuizView {
 
 	private JRadioButton numericTypeRadioButton;
 
-	/**
-	 * This is the radio button for the free text answer quiz type.
-	 */
 	private JRadioButton freeTextAnswerRadioButton;
 
 	private String optionTooltip;

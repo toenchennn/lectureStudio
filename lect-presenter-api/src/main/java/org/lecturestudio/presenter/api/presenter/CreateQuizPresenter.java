@@ -396,22 +396,16 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 				QuizOption option = options.get(i);
 
 				switch (quiz.getType()) {
-					// handles the case where the quiz type is multiple choice
 					case MULTIPLE, SINGLE -> {
-						CreateQuizOptionView optionView = viewFactory.getInstance(
-								CreateQuizDefaultOptionView.class);
+						CreateQuizOptionView optionView = viewFactory.getInstance(CreateQuizDefaultOptionView.class);
 						optionView.setOption(option);
 
 						addOptionView(optionView, false);
 					}
-
-					// handles the case where the quiz type is numeric
 					case NUMERIC -> {
-						MinMaxRule rule = (MinMaxRule) quiz.getInputFilter()
-								.getRules().get(i);
+						MinMaxRule rule = (MinMaxRule) quiz.getInputFilter().getRules().get(i);
 
-						CreateQuizNumericOptionView optionView = viewFactory.getInstance(
-								CreateQuizNumericOptionView.class);
+						CreateQuizNumericOptionView optionView = viewFactory.getInstance(CreateQuizNumericOptionView.class);
 						optionView.setOption(option);
 
 						if (rule.getMin() != Integer.MIN_VALUE) {
@@ -423,10 +417,11 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 
 						addOptionView(optionView, false);
 					}
-
-					// handles the case where the quiz type is free text answer
 					case FREE_TEXT -> {
+						CreateQuizOptionView optionView = viewFactory.getInstance(CreateQuizFreeTextOptionView.class);
+						optionView.setOption(option);
 
+						addOptionView(optionView, false);
 					}
 				}
 			}

@@ -18,6 +18,7 @@
 
 package org.lecturestudio.presenter.api.model;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import java.awt.Color;
@@ -138,32 +139,16 @@ public class QuizDocument extends HtmlToPdfDocument {
 	 * {@link #createDocument(File, Rectangle2D, Dictionary, QuizResult) createDocument}.
 	 *
 	 * @param contentBounds the dimensional bounds defining the content area of the document.
-	 * @param dict          the dictionary used for localization or textual customization.
 	 * @param result        the quiz result data used to populate the document.
 	 * @param tplDoc        the template PDF document, which may be null.
 	 * @param doc           the target PDF document where the quiz will be rendered.
-	 * @param quiz          the quiz containing questions and answers to be included in the document.
 	 *
 	 * @throws IOException if an I/O error occurs during document creation or rendering.
 	 */
 	private static void createWordCloudPage(final Rectangle2D contentBounds,
-											final Dictionary dict,
 											final QuizResult result,
 											final PDDocument tplDoc,
-											final PDDocument doc,
-											final Quiz quiz) throws IOException {
-		List<WordItem> words = new ArrayList<>();
-		Map<QuizAnswer, Integer> resultMap = result.getResult();
-
-		// Create a word frequency list.
-		for (var entry : resultMap.entrySet()) {
-			// Create a word frequency for each answer.
-			String[] options = entry.getKey().getOptions();
-			if (options.length > 0) {
-				words.add(new WordItem(options[0], entry.getValue()));
-			}
-		}
-
+											final PDDocument doc) throws IOException {
 		// Create a new page with a word cloud.
 		var jdoc = Jsoup.parseBodyFragment("");
 		jdoc.head().append("<link rel=\"stylesheet\" href=\"html/quiz.css\">");
@@ -171,7 +156,9 @@ public class QuizDocument extends HtmlToPdfDocument {
 
 		renderHtmlPage(jdoc, tplDoc, doc, contentBounds, new HashMap<>());
 
-		// Add the word cloud image to the last page.
+		// Add the word cloud to the last page.
+		List<WordItem> words = getWordFrequencies(result);
+
 		int pageIndex = doc.getNumberOfPages() - 1;
 		PDPage pdPage = doc.getPage(pageIndex);
 
@@ -198,6 +185,46 @@ public class QuizDocument extends HtmlToPdfDocument {
 		g2dStream.translate(marginX, marginY);
 		layout.renderWordCloud(g2dStream, words);
 		g2dStream.close();
+	}
+
+	/**
+	 * Analyzes a quiz result to extract word frequencies for visualization in a word cloud.
+	 *
+	 * @param result The quiz result containing answers to be analyzed for word frequency.
+	 *
+	 * @return a list of WordItem objects with words and their frequencies for word cloud rendering.
+	 */
+	private static List<WordItem> getWordFrequencies(QuizResult result) {
+		List<WordItem> words = new ArrayList<>();
+		Map<String, Integer> frequencyMap = new HashMap<>();
+
+		// Process the quiz result to count word frequencies.
+		for (var entry : result.getResult().entrySet()) {
+			String[] options = entry.getKey().getOptions();
+
+			// For each option in the current answer, increment its frequency count.
+			for (String option : options) {
+				if (option.isBlank()) {
+					continue;
+				}
+				Integer frequency = frequencyMap.get(option);
+
+				// Initialize frequency to 0 if this is the first occurrence.
+				if (isNull(frequency)) {
+					frequency = 0;
+				}
+
+				// Update the frequency count for this option.
+				frequencyMap.put(option, frequency + 1);
+			}
+		}
+
+		// Convert the frequency map entries to WordItem objects for word cloud visualization.
+		for (var entry : frequencyMap.entrySet()) {
+			words.add(new WordItem(entry.getKey(), entry.getValue()));
+		}
+
+		return words;
 	}
 
 	/**
@@ -236,7 +263,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 		if (!result.getResult().isEmpty()) {
 			if (type == QuizType.FREE_TEXT) {
 				// Create a new page with a word cloud.
-				createWordCloudPage(contentBounds, dict, result, tplDoc, doc, quiz);
+				createWordCloudPage(contentBounds, result, tplDoc, doc);
 			}
 			else {
 				if (type == QuizType.MULTIPLE) {
