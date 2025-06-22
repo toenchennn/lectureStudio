@@ -31,7 +31,7 @@ import org.lecturestudio.web.api.filter.RegexRule;
 import org.lecturestudio.web.api.model.HttpResourceFile;
 
 /**
- * Represents a quiz with a question and answer options.
+ * Represents a quiz with a question and multiple answer options.
  * This class supports different quiz types (multiple choice, single choice, numeric),
  * questions with media files, and text input rules.
  * <p>
@@ -55,8 +55,9 @@ public class Quiz implements Cloneable, Serializable {
 	 * </p>
 	 */
 	public enum QuizType {
+
 		/**
-		 * Represents a multiple choice question where users can select multiple answers.
+		 * Represents a multiple-choice question where users can select multiple answers.
 		 */
 		MULTIPLE,
 
@@ -96,7 +97,13 @@ public class Quiz implements Cloneable, Serializable {
 	/** The text of the quiz question presented to users. */
 	private String question;
 
-	/** Media files (images, audio, etc.) that accompany the question. */
+	/**
+	 * Represents additional comments or notes associated with the quiz.
+	 * This field may contain supplementary information or clarifications about the quiz question or context.
+	 */
+	private String comment = ""; // initialized to empty string for consistency and avoid null checks.
+
+	/** Media files (images, audio, etc.) that go with the question. */
 	private List<HttpResourceFile> questionResources = new ArrayList<>();
 
 	/** The possible answer options for multiple choice and single choice questions. */
@@ -188,6 +195,24 @@ public class Quiz implements Cloneable, Serializable {
 	 */
 	public String getQuestion() {
 		return question;
+	}
+
+	/**
+	 * Sets the comment associated with this quiz.
+	 *
+	 * @param comment The comment text to associate with the quiz.
+	 */
+	public void setComment(final String comment) {
+		this.comment = comment;
+	}
+
+	/**
+	 * Retrieves the comment associated with this quiz.
+	 *
+	 * @return The comment text.
+	 */
+	public String getComment() {
+		return comment;
 	}
 
 	/**
@@ -331,7 +356,10 @@ public class Quiz implements Cloneable, Serializable {
 		boolean c = Objects.equals(options, other.options);
 		boolean d = Objects.equals(filter, other.filter);
 
-		return a && b && c && d;
+		// Added comment comparison
+		boolean e = Objects.equals(comment, other.comment);
+
+		return a && b && c && d && e;
 	}
 
 	@Override
@@ -361,6 +389,8 @@ public class Quiz implements Cloneable, Serializable {
 	public Quiz clone() {
 		Quiz quiz = new Quiz(type, question);
 		quiz.setQuizSet(getQuizSet());
+
+		quiz.setComment(getComment()); // Copies the comment of this quiz.
 
 		for (QuizOption o : getOptions()) {
 			quiz.addOption(new QuizOption(o.optionText(), o.correct()));
