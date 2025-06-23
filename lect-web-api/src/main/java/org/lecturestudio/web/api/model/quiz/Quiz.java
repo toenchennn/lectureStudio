@@ -364,7 +364,7 @@ public class Quiz implements Cloneable, Serializable {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(question, type, options, filter);
+		return Objects.hash(question, type, options, filter, comment /* comment added to the varargs list */);
 	}
 
 	@Override
