@@ -88,10 +88,37 @@ import org.lecturestudio.web.api.model.quiz.QuizResult;
  */
 public class QuizDocument extends HtmlToPdfDocument {
 
+
+	// ==================================================================================================
+	//										EXPERIMENTAL ATTRIBUTES
+	// ==================================================================================================
+
+	/**
+	 * A flag indicating whether experimental features should be activated within the application.
+	 * <p>
+	 * This variable is primarily intended for use in development environments to enable or
+	 * test new, incomplete, or potentially unstable functionalities.
+	 * When set to {@code true},
+	 * features that are marked as experimental can be made accessible; otherwise, they
+	 * remain disabled.
+	 * <p>
+	 * Note that this flag should generally be set to {@code false} in production environments to
+	 * avoid introducing unintended or untested behaviors.
+	 */
+	public static final boolean QUIZ_DOCUMENT_ACTIVATE_EXPERIMENTAL_FEATURES = true; // for development purposes
+
+	// ==================================================================================================
+ 	//											ATTRIBUTES
+ 	// ==================================================================================================
+
 	private static final NumericStringComparator NS_COMPARATOR = new NumericStringComparator();
 
 	private final QuizResult result;
 
+
+	// ==================================================================================================
+	//											CONSTRUCTOR(S)
+	// ==================================================================================================
 
 	public QuizDocument(File templateFile, Rectangle2D contentBounds,
 			Dictionary dict, QuizResult result) throws IOException {
@@ -102,6 +129,16 @@ public class QuizDocument extends HtmlToPdfDocument {
 		setTitle(dict.get("quiz"));
 	}
 
+
+	// ==================================================================================================
+	//											METHODS
+	// ==================================================================================================
+
+	/**
+	 * Determines whether the quiz document has any associated answers.
+	 *
+	 * @return true if the result is non-null and contains at least one answer entry, false otherwise.
+	 */
 	public boolean hasAnswers() {
 		return nonNull(result) && !result.getResult().isEmpty();
 	}
@@ -109,7 +146,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 
 	/**
 	 * Creates a helper for generating a document representing a multiple-choice quiz,
-	 * rendering questions and associated answer statistics in chart format.
+	 * rendering questions, and associated answer statistics in chart format.
 	 * In other words, it creates a new page with the statistics bar-chart.
 	 * This method serves as an auxiliary method for the method
 	 * {@link #createDocument(File, Rectangle2D, Dictionary, QuizResult) createDocument}.
@@ -128,6 +165,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 												 final PDDocument doc, final Quiz quiz) throws IOException {
 		// Create a new page with the statistics bar-chart.
 		renderChartQuestions(tplDoc, doc, contentBounds, quiz);
+		// renderChartQuestions(tplDoc, doc, contentBounds, quiz); // TODO: DEBUG - PLEASE COMMENT OUT SOON !!!
 		renderChart(tplDoc, doc, result, createBarChartAnswerStats(dict, result), contentBounds);
 	}
 
@@ -431,6 +469,8 @@ public class QuizDocument extends HtmlToPdfDocument {
 			}
 
 			tdDiv.text(String.format("%s %s", prefix, text));
+
+			System.out.println("Chart updated"); // debugging flag
 		}
 
 		renderHtmlPage(jdoc, tplDoc, doc, contentBounds, Map.of());
@@ -501,6 +541,55 @@ public class QuizDocument extends HtmlToPdfDocument {
 	}
 
 	private static CategoryChart createBarChart(Dictionary dict, QuizResult result) {
+		return createBarChart_new(dict, result);
+	}
+
+	private static CategoryChart createBarChart_new(Dictionary dict, QuizResult result) {
+		final CategoryChart chart = new CategoryChartBuilder().theme(ChartTheme.XChart).build();
+		chart.setXAxisTitle(dict.get("quiz.options"));
+		chart.setYAxisTitle(dict.get("quiz.answers"));
+		chart.getStyler().setOverlapped(true);
+		chart.getStyler().setChartBackgroundColor(Color.WHITE);
+		chart.getStyler().setLegendBorderColor(Color.WHITE);
+		chart.getStyler().setLegendVisible(false);
+		chart.getStyler().setXAxisTicksVisible(true);
+		chart.getStyler().setAxisTicksLineVisible(false);
+		chart.getStyler().setSeriesColors(new ChartColors().getSeriesColors());
+
+		final Map<QuizAnswer, Integer> resultMap = result.getResult();
+		final String[] xValues = new String[resultMap.size()];
+		int index = 0;
+
+		final Collection<QuizAnswer> answers = getSortedAnswers(result);
+
+		for (final QuizAnswer answer : answers) {
+			xValues[index] = result.getAnswerText(answer);
+			// xValues[index] = "Hello, this is a debugging";
+
+			index++;
+		}
+
+		index = 0;
+
+		for (final QuizAnswer answer : answers) {
+			final Integer[] yValues = new Integer[resultMap.size()];
+			Arrays.fill(yValues, 0);
+
+			yValues[index] = resultMap.get(answer);
+
+			chart.addSeries(result.getAnswerText(answer), List.of(xValues), List.of(yValues));
+
+			index++;
+		}
+
+		if (answers.size() > 9) {
+			chart.getStyler().setXAxisLabelRotation(45);
+		}
+
+		return chart;
+	}
+
+	private static CategoryChart createBarChart_old(Dictionary dict, QuizResult result) {
 		CategoryChart chart = new CategoryChartBuilder().theme(ChartTheme.XChart).build();
 		chart.setXAxisTitle(dict.get("quiz.options"));
 		chart.setYAxisTitle(dict.get("quiz.answers"));

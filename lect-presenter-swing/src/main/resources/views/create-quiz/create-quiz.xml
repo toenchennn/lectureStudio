@@ -12,10 +12,12 @@
 			<gridbagconstraints gridx="0" gridy="2" gridwidth="4" weightx="1.0" weighty="1.0" fill="GridBagConstraints.BOTH" insets="0,0,20,0" />
 		</HTMLEditor>
 
+		<!-- Creates a label for the quiz comment -->
 		<Label text="create.quiz.comment" border="EmptyBorder(0, 0, 5, 0)">
 			<gridbagconstraints gridx="0" gridy="3" gridwidth="4" fill="GridBagConstraints.BOTH" />
 		</Label>
 
+		<!-- Creates a text field for the quiz comment -->
 		<TextArea text="" wrapStyleWord="true" lineWrap="true" id="commentTextArea">
 			<gridbagconstraints gridx="0" gridy="4" weightx="1.0" weighty="0.2" fill="GridBagConstraints.BOTH"
 								insets="0,0,20,0" />
@@ -39,19 +41,19 @@
 			</buttongroup>
 		</VBox>
 		<Label text="create.quiz.set">
-			<gridbagconstraints gridx="2" gridy="3" anchor="GridBagConstraints.NORTHWEST" insets="0,0,0,10" />
+			<gridbagconstraints gridx="2" gridy="5" anchor="GridBagConstraints.NORTHWEST" insets="0,0,0,10" />
 		</Label>
 		<ComboBox id="docSetComboBox">
-			<gridbagconstraints gridx="3" gridy="3" anchor="GridBagConstraints.NORTHWEST" />
+			<gridbagconstraints gridx="3" gridy="5" anchor="GridBagConstraints.NORTHWEST" />
 		</ComboBox>
 		<VBox id="optionContainer">
-			<gridbagconstraints gridx="0" gridy="4" gridwidth="4" fill="GridBagConstraints.HORIZONTAL" insets="20,0,10,0" />
+			<gridbagconstraints gridx="0" gridy="6" gridwidth="4" fill="GridBagConstraints.HORIZONTAL" insets="20,0,10,0" />
 		</VBox>
 		<Button id="newOptionButton" icon="add.svg, 20" text="create.quiz.option.add" tooltipText="create.quiz.option.add.tooltip" accelerator="ctrl O">
-			<gridbagconstraints gridx="0" gridy="5" gridwidth="4" anchor="GridBagConstraints.WEST" />
+			<gridbagconstraints gridx="0" gridy="7" gridwidth="4" anchor="GridBagConstraints.WEST" />
 		</Button>
 		<HBox gap="5" border="EmptyBorder(10, 0, 0, 0)">
-			<gridbagconstraints gridx="0" gridy="6" gridwidth="4" fill="GridBagConstraints.HORIZONTAL" />
+			<gridbagconstraints gridx="0" gridy="8" gridwidth="4" fill="GridBagConstraints.HORIZONTAL" />
 			<box.hglue />
 			<Button id="closeButton" text="button.close" tooltipText="create.quiz.cancel.tooltip"/>
 			<Button id="saveAndNextQuizButton" text="create.quiz.save.next" tooltipText="create.quiz.save.next.tooltip" accelerator="ctrl W"/>
