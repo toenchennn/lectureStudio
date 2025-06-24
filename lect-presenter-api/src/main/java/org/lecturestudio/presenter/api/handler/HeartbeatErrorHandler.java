@@ -54,7 +54,7 @@ public class HeartbeatErrorHandler extends PresenterHandler {
 		heartbeatError.set(false);
 	}
 
-	@Subscribe
+//	@Subscribe
 	public void onEvent(final HeartbeatEvent event) {
 		if (event.type() == HeartbeatEvent.Type.FAILURE) {
 			if (heartbeatError.compareAndSet(false, true)) {

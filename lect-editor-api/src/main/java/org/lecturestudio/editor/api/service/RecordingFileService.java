@@ -921,7 +921,7 @@ public class RecordingFileService {
 
 		// Do not refresh the recording if new events got added, because the view got already handled by the UI.
 		switch (content) {
-			case ALL, DOCUMENT, HEADER, AUDIO -> {
+			case ALL, DOCUMENT, HEADER, AUDIO, EVENTS_REMOVED, EVENTS_CHANGED -> {
 				documentService.replaceDocument(document);
 				playbackService.setRecording(recording);
 
@@ -1160,7 +1160,8 @@ public class RecordingFileService {
 	 */
 	public CompletableFuture<Void> insertPlaybackActions(
 			List<PlaybackAction> addActions,
-			List<PlaybackAction> removeActions, int pageNumber,
+			List<PlaybackAction> removeActions,
+			int pageNumber,
 			Recording recording) {
 		return CompletableFuture.runAsync(() -> {
 				// Add and remove actions with a single composite action which
