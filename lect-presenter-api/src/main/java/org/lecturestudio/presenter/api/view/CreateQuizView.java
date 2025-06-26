@@ -38,6 +38,20 @@ public interface CreateQuizView extends View {
 
 	void moveQuizOptionViewDown(CreateQuizOptionView optionView);
 
+	/**
+	 * Retrieves the comment associated with the quiz.
+	 *
+	 * @return a string representing the quiz comment, or null if no comment exists.
+	 */
+	String getQuizComment();
+
+	/**
+	 * Sets the comment associated with the quiz with a new specified {@link String} value.
+	 *
+	 * @param comment The new specified comment as {@link String} value.
+	 */
+	void setQuizComment(final String comment);
+
 	String getQuizText();
 
 	void setQuizText(String text);

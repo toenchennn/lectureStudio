@@ -70,11 +70,15 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 
 	private Document selectedDoc;
 
+	// TODO: Replace "Debug" with an empty string.
+	private static final String DEFAULT_COMMENT = "<DEBUG_CLASS_CREATE-QUIZ-PRESENTER>";
+
 
 	@Inject
 	CreateQuizPresenter(ApplicationContext context, CreateQuizView view,
 			ViewContextFactory viewFactory, DocumentService documentService,
-			QuizService quizService, StreamService streamService) {
+			QuizService quizService, StreamService streamService)
+	{
 		super(context, view);
 
 		this.viewFactory = viewFactory;
@@ -104,7 +108,11 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 		setQuizSet(isGenericSet() ?
 				Quiz.QuizSet.GENERIC :
 				QuizSet.DOCUMENT_SPECIFIC);
-		setQuizType(Quiz.QuizType.MULTIPLE);
+
+		setQuizType(Quiz.QuizType.MULTIPLE); // sets the default quiz type
+
+		// TODO: ENSURE TO REPLACE WITH EMPTY STRING!!!
+		// setQuizComment( DEFAULT_COMMENT ); // sets the default quiz comment
 
 		List<Document> documents = new ArrayList<>();
 		documents.add(genericDoc);
@@ -240,6 +248,16 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 			optionViews.forEach(view -> addOptionView(view, false));
 		}
 	}
+
+	/**
+	 * Sets a comment for the current quiz.
+	 *
+	 * @param comment The comment text to be associated with the quiz.
+	 */
+	private void setQuizComment(final String comment) {
+		quiz.setComment(comment);
+	} // <end of setQuizComment>
+
 
 	private boolean isGenericSet() {
 		return selectedDoc == genericDoc;

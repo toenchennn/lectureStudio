@@ -162,7 +162,8 @@ public class QuizDocument extends HtmlToPdfDocument {
 	 */
 	private static void createMultipleChoicePage(final Rectangle2D contentBounds, final Dictionary dict,
 												 final QuizResult result, final PDDocument tplDoc,
-												 final PDDocument doc, final Quiz quiz) throws IOException {
+												 final PDDocument doc, final Quiz quiz) throws IOException
+	{
 		// Create a new page with the statistics bar-chart.
 		renderChartQuestions(tplDoc, doc, contentBounds, quiz);
 		// renderChartQuestions(tplDoc, doc, contentBounds, quiz); // TODO: DEBUG - PLEASE COMMENT OUT SOON !!!
@@ -331,7 +332,8 @@ public class QuizDocument extends HtmlToPdfDocument {
 	}
 
 	private static void renderQuestion(PDDocument tplDoc, PDDocument doc,
-			Rectangle2D contentBounds, Quiz quiz) throws IOException {
+			Rectangle2D contentBounds, Quiz quiz) throws IOException
+	{
 		String question = quiz.getQuestion().replaceAll("&nbsp;", " ");
 
 		var jdoc = Jsoup.parseBodyFragment(question);
@@ -375,7 +377,8 @@ public class QuizDocument extends HtmlToPdfDocument {
 		renderHtmlPage(jdoc, tplDoc, doc, contentBounds, resourceMap);
 	}
 
-	private static boolean textFits(String text, Dimension areaToFit) {
+	private static boolean textFits(String text, Dimension areaToFit)
+	{
 		Font font = new Font("Helvetica", Font.PLAIN, 12);
 
 		AttributedString as = new AttributedString(text);
@@ -415,7 +418,8 @@ public class QuizDocument extends HtmlToPdfDocument {
 	}
 
 	private static void renderChartQuestions(PDDocument tplDoc, PDDocument doc,
-			Rectangle2D contentBounds, Quiz quiz) throws IOException {
+			Rectangle2D contentBounds, Quiz quiz) throws IOException
+	{
 		List<QuizOption> options = quiz.getOptions();
 
 		if (options.isEmpty()) {
@@ -477,7 +481,8 @@ public class QuizDocument extends HtmlToPdfDocument {
 	}
 
 	private static void renderChart(PDDocument tplDoc, PDDocument doc,
-			QuizResult result, Chart<?, ?> chart, Rectangle2D contentBounds) {
+			QuizResult result, Chart<?, ?> chart, Rectangle2D contentBounds)
+	{
 		if (result.getResult().isEmpty()) {
 			return;
 		}

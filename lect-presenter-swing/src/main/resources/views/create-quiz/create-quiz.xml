@@ -21,7 +21,7 @@
 		<TextArea text="" wrapStyleWord="true" lineWrap="true" id="commentTextArea">
 			<gridbagconstraints gridx="0" gridy="4" weightx="1.0" weighty="0.2" fill="GridBagConstraints.BOTH"
 								insets="0,0,20,0" />
-		</TextArea>""
+		</TextArea>
 
 		<Label text="create.quiz.type">
 			<gridbagconstraints gridx="0" gridy="5" anchor="GridBagConstraints.NORTHWEST" insets="0,0,0,30" />

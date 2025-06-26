@@ -45,6 +45,14 @@ public class Quiz implements Cloneable, Serializable {
 	@Serial
 	private static final long serialVersionUID = -2922040254601147407L;
 
+	/**
+	 * A default comment string used for debugging purposes in the Quiz class.
+	 * This value is intended to help during the development phase and
+	 * may be replaced with an empty string in production or final implementations.
+	 */
+	// TODO: REPLACE WITH EMPTY STRING OR NULL SOON!!!
+	private static final String DEFAULT_COMMENT = "";
+
 
 	/**
 	 * Defines the type of quiz question presented to users.
@@ -101,7 +109,7 @@ public class Quiz implements Cloneable, Serializable {
 	 * Represents additional comments or notes associated with the quiz.
 	 * This field may contain supplementary information or clarifications about the quiz question or context.
 	 */
-	private String comment = ""; // initialized to empty string for consistency and avoid null checks.
+	private String comment; // initialized to empty string for consistency and avoid null checks.
 
 	/** Media files (images, audio, etc.) that go with the question. */
 	private List<HttpResourceFile> questionResources = new ArrayList<>();
@@ -126,12 +134,25 @@ public class Quiz implements Cloneable, Serializable {
 	/**
 	 * Creates a new quiz with the specified type and question.
 	 *
-	 * @param type     The type of quiz (MULTIPLE, SINGLE, or NUMERIC).
+	 * @param type     The type of quiz (MULTIPLE, SINGLE, NUMERIC or FREE_TEXT).
 	 * @param question The text of the quiz question.
 	 */
 	public Quiz(QuizType type, String question) {
+		this(type, question, DEFAULT_COMMENT);
+		// TODO: REPLACE THE DEFAULT COMMENT WITH A SUITABLE CANDIDATE!!!
+	}
+
+	/**
+	 * Constructs a new Quiz with the specified type, question and comment.
+	 *
+	 * @param type     The type of the quiz (e.g., MULTIPLE, SINGLE, NUMERIC, FREE_TEXT).
+	 * @param question The text of the quiz question.
+	 * @param comment  The comment or additional information associated with the quiz.
+	 */
+	public Quiz(final QuizType type, final String question, final String comment) {
 		this.type = type;
 		this.question = question;
+		this.comment = comment;
 	}
 
 	/**
@@ -357,22 +378,29 @@ public class Quiz implements Cloneable, Serializable {
 		boolean d = Objects.equals(filter, other.filter);
 
 		// Added comment comparison
-		boolean e = Objects.equals(comment, other.comment);
+		boolean e = Objects.equals( getComment(), other.getComment() );
 
 		return a && b && c && d && e;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(question, type, options, filter, comment /* comment added to the varargs list */);
+		return Objects.hash(
+				question,
+				type,
+				options,
+				filter,
+				getComment() /* 'comment' added to the varargs list */
+		);
 	}
 
 	@Override
 	public String toString() {
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder(); // StringBuilder has replaced StringBuffer
 		buffer.append(type).append("\n");
 		buffer.append(set).append("\n");
 		buffer.append(question).append("\n");
+		buffer.append( getComment() ).append("\n");
 
 		for (QuizOption option : options) {
 			buffer.append(" ").append(option).append("\n");

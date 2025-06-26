@@ -305,7 +305,7 @@ public class QuizDataSource {
 	}
 
 	/**
-	 * Migrates quiz data from legacy format to the current format.
+	 * Migrates quiz data from the legacy format to the current format.
 	 * <p>
 	 * This method attempts to read quizzes from the legacy file format, and if any
 	 * are found, saves them to the current repository format. After successful migration,
