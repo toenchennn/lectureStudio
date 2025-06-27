@@ -328,6 +328,9 @@ public class SwingCreateQuizView extends ContentPane implements CreateQuizView {
 		htmlEditor.getEditorPane().getDocument().addDocumentListener(
 				new DefaultDocumentListener(() -> updateQuizStateUI(true)));
 
+		commentTextArea.getDocument().addDocumentListener(
+				new DefaultDocumentListener(() -> updateQuizStateUI(true)));
+
 		optionContainer.addContainerListener(new ContainerAdapter() {
 
 			@Override

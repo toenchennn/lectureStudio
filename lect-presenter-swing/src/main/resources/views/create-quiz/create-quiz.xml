@@ -19,7 +19,7 @@
 
 		<!-- Creates a text field for the quiz comment -->
 		<TextArea text="" wrapStyleWord="true" lineWrap="true" id="commentTextArea">
-			<gridbagconstraints gridx="0" gridy="4" weightx="1.0" weighty="0.2" fill="GridBagConstraints.BOTH"
+			<gridbagconstraints gridx="0" gridy="4" gridwidth="4" weightx="1.0" weighty="0.2" fill="GridBagConstraints.BOTH"
 								insets="0,0,20,0" />
 		</TextArea>
 

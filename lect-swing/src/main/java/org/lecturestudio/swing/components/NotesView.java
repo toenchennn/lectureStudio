@@ -51,7 +51,6 @@ public class NotesView extends NotesPanel{
 
     @Override
     protected void createContent(JPanel content) {
-
         Box controlPanel = Box.createHorizontalBox();
         controlPanel.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
         controlPanel.setOpaque(false);

@@ -296,7 +296,9 @@ public class QuizDocument extends HtmlToPdfDocument {
 		QuizType type = quiz.getType();
 
 		// Create the first page with the question on it.
-		renderQuestion(tplDoc, doc, contentBounds, quiz);
+		renderQuestion(tplDoc, doc, contentBounds, quiz, false);
+
+		renderQuestion(tplDoc, doc, contentBounds, quiz, true);
 
 		// Checks if the list of results is empty.
 		if (!result.getResult().isEmpty()) {
@@ -332,7 +334,7 @@ public class QuizDocument extends HtmlToPdfDocument {
 	}
 
 	private static void renderQuestion(PDDocument tplDoc, PDDocument doc,
-			Rectangle2D contentBounds, Quiz quiz) throws IOException
+			Rectangle2D contentBounds, Quiz quiz, boolean showCorrectOptions) throws IOException
 	{
 		String question = quiz.getQuestion().replaceAll("&nbsp;", " ");
 
@@ -367,6 +369,12 @@ public class QuizDocument extends HtmlToPdfDocument {
 			for (int i = 0; i < options.size(); i++) {
 				if (quiz.getType() != QuizType.NUMERIC) {
 					prefix = quiz.getOptionAlpha(i + "") + ") ";
+				}
+
+				QuizOption option = quiz.getOptions().get(i);
+
+				if (showCorrectOptions && option.correct()) {
+					prefix += "RICHTIG ";
 				}
 
 				Element item = uList.appendElement("p");

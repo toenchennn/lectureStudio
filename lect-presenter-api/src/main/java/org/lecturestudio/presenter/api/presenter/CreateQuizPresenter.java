@@ -369,6 +369,7 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 		String htmlBody = doc.body().html().replace("&nbsp;", " ");
 
 		quiz.setQuestion(htmlBody);
+		quiz.setComment(view.getQuizComment());
 		quiz.clearOptions();
 		quiz.clearInputFilter();
 
@@ -399,6 +400,10 @@ public class CreateQuizPresenter extends Presenter<CreateQuizView> {
 		setQuizSet(isGenericSet() ?
 				Quiz.QuizSet.GENERIC :
 				QuizSet.DOCUMENT_SPECIFIC);
+
+		if (nonNull(quiz.getComment())) {
+			view.setQuizComment(quiz.getComment());
+		}
 
 		if (isNull(quiz.getType())) {
 			setQuizType(Quiz.QuizType.MULTIPLE);

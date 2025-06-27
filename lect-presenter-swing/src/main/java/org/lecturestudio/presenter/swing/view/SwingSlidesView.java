@@ -2411,7 +2411,7 @@ public class SwingSlidesView extends JPanel implements SlidesView {
 	}
 
 	private void addNoteView(Component view){
-//		setNotesBarTabVisible(dict.get(NOTES_LABEL_KEY), true);
+		setNotesBarTabVisible(dict.get(NOTES_LABEL_KEY), true);
 
 		notesViewContainer.add(view);
 		notesViewContainer.invalidate();
