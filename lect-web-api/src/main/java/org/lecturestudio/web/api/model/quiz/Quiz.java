@@ -134,7 +134,7 @@ public class Quiz implements Cloneable, Serializable {
 	/**
 	 * Creates a new quiz with the specified type and question.
 	 *
-	 * @param type     The type of quiz (MULTIPLE, SINGLE, NUMERIC or FREE_TEXT).
+	 * @param type     The type of quiz (MULTIPLE, SINGLE, NUMERIC, or FREE_TEXT).
 	 * @param question The text of the quiz question.
 	 */
 	public Quiz(QuizType type, String question) {
@@ -143,7 +143,7 @@ public class Quiz implements Cloneable, Serializable {
 	}
 
 	/**
-	 * Constructs a new Quiz with the specified type, question and comment.
+	 * Constructs a new Quiz with the specified type, question, and comment.
 	 *
 	 * @param type     The type of the quiz (e.g., MULTIPLE, SINGLE, NUMERIC, FREE_TEXT).
 	 * @param question The text of the quiz question.

@@ -107,11 +107,21 @@ public class QuizDocument extends HtmlToPdfDocument {
 	 */
 	public static final boolean QUIZ_DOCUMENT_ACTIVATE_EXPERIMENTAL_FEATURES = true; // for development purposes
 
+	/**
+     * Represents a Unicode checkmark symbol.
+     * This constant is typically used to visually indicate a successful verification, completion,
+     * or correctness within the associated quiz document rendering system.
+     *
+     * @see <a href="https://en.wikipedia.org/wiki/Check_mark">Check mark</a>
+     */
+	private static final String CHECK_MARK = "[x]";
+
 	// ==================================================================================================
  	//											ATTRIBUTES
  	// ==================================================================================================
 
 	private static final NumericStringComparator NS_COMPARATOR = new NumericStringComparator();
+
 
 	private final QuizResult result;
 
@@ -367,18 +377,24 @@ public class QuizDocument extends HtmlToPdfDocument {
 			String prefix = "";
 
 			for (int i = 0; i < options.size(); i++) {
+
+				// Lists the quiz options with numbers.
 				if (quiz.getType() != QuizType.NUMERIC) {
 					prefix = quiz.getOptionAlpha(i + "") + ") ";
 				}
 
-				QuizOption option = quiz.getOptions().get(i);
+				final QuizOption option = quiz.getOptions().get(i);
 
-				if (showCorrectOptions && option.correct()) {
-					prefix += "RICHTIG ";
-				}
+				final Element item = uList.appendElement("p");
 
-				Element item = uList.appendElement("p");
-				item.text(prefix + options.get(i).optionText());
+				// Text representation of a quiz option on a quiz presentation slide.
+				String itemText = prefix + options.get(i).optionText();
+
+				// Appends a check mark as a suffix if the quiz option is correct
+				if (showCorrectOptions && option.correct())
+					itemText += ' ' + CHECK_MARK;
+
+				item.text( itemText );
 			}
 		}
 
